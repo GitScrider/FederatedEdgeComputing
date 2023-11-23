@@ -42,10 +42,10 @@ GPIOConfiguration();
     while (1) {
         // Acender o LED
         gpio_set_level(LED_PIN, 1);
-        vTaskDelay(500 / portTICK_PERIOD_MS); // Esperar por 1 segundo
+        vTaskDelay(100 / portTICK_PERIOD_MS); // Esperar por 1 segundo
         teste();
         // Apagar o LED
         gpio_set_level(LED_PIN, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Esperar por 1 segundo
+        vTaskDelay(100 / portTICK_PERIOD_MS); // Esperar por 1 segundo
     }
 }
