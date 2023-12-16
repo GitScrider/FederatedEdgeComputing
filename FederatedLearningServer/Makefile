@@ -1,31 +1,26 @@
-CC := gcc
-CFLAGS := -Wall -Wextra -std=c99
-LDFLAGS := -lmicrohttpd
+#CFLAGS := -Wall -Wextra -std=c99
+CC = gcc
+CFLAGS = -Wall -Wextra
+SRCDIR = src
+INCDIR = lib
+BUILDDIR = .build
+PROGRAM_NAME = FederatedLearningServer
+TARGET = $(PROGRAM_NAME)
+LIBS = -lpthread -lwebsockets
 
-SRC_DIR := src
-LIB_DIR := lib
-BUILD_DIR := build
+SOURCES := $(wildcard $(SRCDIR)/*.c)
+INCLUDES := $(wildcard $(INCDIR)/*.h)
+OBJECTS := $(filter-out $(SRCDIR)/main.c, $(SOURCES:$(SRCDIR)/%.c=$(BUILDDIR)/%.o))
 
-SRCS := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(LIB_DIR)/*.c)
-OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(SRCS)))
 
-TARGET := FedetaredLearningServer
+$(TARGET): $(OBJECTS) 
+	$(CC) $(CFLAGS) $^ main.c -o $@ $(LIBS)
 
-.PHONY: all clean
-
-all: $(BUILD_DIR) $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(BUILD_DIR)/%.o: $(LIB_DIR)/%.c
-	$(CC) $(CFLAGS) -I$(LIB_DIR) -c -o $@ $<
-
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c $(INCLUDES)
+	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+	rm -f $(BUILDDIR)/*.o $(TARGET)
+
+run:
+	./$(PROGRAM_NAME)
