@@ -1,5 +1,7 @@
 #include "lib/httpserver.h"
 #include "lib/websocketserver.h"
+#include "lib/federatedlearning.h"
+#include  "lib/cJSON.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -13,7 +15,11 @@ struct ThreadArgs {
 
 int main() {
 
-    
+    FederatedLearning *FDI =  getFederatedLearningInstance();
+    printf("STATUS: %d\n",FDI->globalmodelstatus);
+    setFederatedLearningGlobalModel();
+    printf("STATUS: %d\n",FDI->globalmodelstatus);
+
     // Inicializar o servidor HTTP em uma thread
     pthread_t http_thread;
     struct ThreadArgs threadArgsHTTP = {8888};  // Preencha os argumentos conforme necessário
