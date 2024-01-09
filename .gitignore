@@ -1,4 +1,6 @@
+.vscode
 FederatedLearningESP32/.pio
 FederatedLearningESP32/.vscode
 FederatedLearningServer/.vscode
-FederatedLearningServer/build
+FederatedLearningServer/.build
+FederatedLearningServer/FederatedLearningServer

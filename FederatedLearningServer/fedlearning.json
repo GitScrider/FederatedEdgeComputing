@@ -1,0 +1,140 @@
+{
+    "trainingsnumber": 0,
+    "neuronnetwork": {
+      "layers": 4,
+      "layersArray": [
+        {
+          "neurons": 4,
+          "neuronsArray": [
+            {
+              "neurontype": "INPUT",
+              "weights": 0,
+              "weightsArray": [
+                
+              ]
+            },
+            {
+              "neurontype": "INPUT",
+              "weights": 0,
+              "weightsArray": [
+                
+              ]
+            },
+            {
+              "neurontype": "INPUT",
+              "weights": 0,
+              "weightsArray": [
+                
+              ]
+            },
+            {
+              "neurontype": "INPUT",
+              "weights": 0,
+              "weightsArray": [
+                
+              ]
+            }
+          ]
+        },
+        {
+          "neurons": 4,
+          "neuronsArray": [
+            {
+              "neurontype": "HIDDEN",
+              "weights": 4,
+              "weightsArray": [
+                0.119999997317791,
+                0.20000000298023224,
+                0.23000000417232513,
+                0.88999998569488525
+              ]
+            },
+            {
+              "neurontype": "HIDDEN",
+              "weights": 4,
+              "weightsArray": [
+                0.81999999284744263,
+                0.49000000953674316,
+                0.0599999986588955,
+                0.46000000834465027
+              ]
+            },
+            {
+              "neurontype": "HIDDEN",
+              "weights": 4,
+              "weightsArray": [
+                0.28999999165534973,
+                0.18000000715255737,
+                0,
+                0.25
+              ]
+            },
+            {
+              "neurontype": "HIDDEN",
+              "weights": 4,
+              "weightsArray": [
+                0.75,
+                0.10000000149011612,
+                0.34000000357627869,
+                0.600000023841858
+              ]
+            }
+          ]
+        },
+        {
+          "neurons": 2,
+          "neuronsArray": [
+            {
+              "neurontype": "HIDDEN",
+              "weights": 4,
+              "weightsArray": [
+                0.300000011920929,
+                0.509999990463257,
+                0.37999999523162842,
+                0.899999976158142
+              ]
+            },
+            {
+              "neurontype": "HIDDEN",
+              "weights": 4,
+              "weightsArray": [
+                0.079999998211860657,
+                0.649999976158142,
+                0.2800000011920929,
+                0.34999999403953552
+              ]
+            }
+          ]
+        },
+        {
+          "neurons": 3,
+          "neuronsArray": [
+            {
+              "neurontype": "OUTPUT",
+              "weights": 2,
+              "weightsArray": [
+                0.479999989271164,
+                0.0900000035762787
+              ]
+            },
+            {
+              "neurontype": "OUTPUT",
+              "weights": 2,
+              "weightsArray": [
+                0.76999998092651367,
+                0.68000000715255737
+              ]
+            },
+            {
+              "neurontype": "OUTPUT",
+              "weights": 2,
+              "weightsArray": [
+                0.8399999737739563,
+                0.649999976158142
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
