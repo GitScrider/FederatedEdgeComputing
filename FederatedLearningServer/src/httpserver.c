@@ -18,7 +18,7 @@ struct ThreadArgs {
 void handle_request(int client_socket) {
     char buffer[BUFFER_SIZE] = {0};
     read(client_socket, buffer, BUFFER_SIZE - 1);
-    printf("Request received:\n%s\n", buffer);
+    //printf("Request received:\n%s\n", buffer);
 
     //Extracting the bory from the request.
     char *body_start = strstr(buffer, "\r\n\r\n");
@@ -32,7 +32,9 @@ void handle_request(int client_socket) {
     else if (strstr(buffer, "GET /api/getglobalmodel HTTP/1.1") != NULL){
         handle_get_globalmodel(client_socket);
     }
-    else if (strstr(buffer, "POST /api/postglobalmodel") != NULL){
+    else if (strstr(buffer, "POST /api/postglobalmodel HTTP/1.1") != NULL){
+    printf("teste 1");
+        
         handle_post_globalmodel(client_socket, request_body);
     }
     else if (strstr(buffer, "POST /api/testpost") != NULL) {
@@ -81,7 +83,7 @@ void *start_httpserver(void *args) {
         exit(EXIT_FAILURE);
     }
 
-    printf("HTTP Server running in http://127.0.0.1:%d/\n", (int)threadArgs->port);
+    printf("HTTP Server running in http://192.168.15.100:%d/\n", (int)threadArgs->port);
 
     while (1) {
         // Waiting for some conection

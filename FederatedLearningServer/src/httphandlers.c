@@ -1,6 +1,7 @@
 #include "../lib/httphandlers.h"
 #include "../lib/cJSON.h"
 #include "../lib/federatedlearning.h"
+#include "../lib/JSONConverter.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -9,42 +10,10 @@
 
 
 void handle_root_request(int client_socket){
-    // Caminho para o arquivo HTML
-    const char *file_path = "../static/index.html";
-    printf("Tentando abrir o arquivo: %s\n", file_path);
 
-        //Abre o arquivo em modo de leitura
-        FILE *file = fopen("/../static/index.html", "r");
-
-        if (file != NULL) {
-        // Lê o conteúdo do arquivo
-        fseek(file, 0, SEEK_END);
-        long file_size = ftell(file);
-        fseek(file, 0, SEEK_SET);
-
-        // Aloca um buffer para armazenar o conteúdo do arquivo
-        char *file_content = (char *)malloc(file_size + 1);
-        fread(file_content, 1, file_size, file);
-        fclose(file);
-
-        // Adiciona um caractere nulo ao final do conteúdo para formar uma string válida
-        file_content[file_size] = '\0';
-
-        // Cria uma resposta HTTP com o conteúdo do arquivo HTML
-        const char *response_format = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: %ld\n\n%s";
-        char response[strlen(response_format) + file_size + 1];
-        sprintf(response, response_format, file_size, file_content);
-
-        // Envia a resposta ao cliente
-        write(client_socket, response, strlen(response));
-
-        // Libera a memória alocada
-        free(file_content);
-    } else {
-        //Se o arquivo não puder ser aberto, envia uma resposta padrão
         const char *response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n\nFile Not Found";
         write(client_socket, response, strlen(response));
-    }
+
 }
 
 
@@ -96,7 +65,7 @@ void handle_get_globalmodel(int client_socket) {
     FederatedLearning *FederatedLearningInstance = getFederatedLearningInstance();
 
     // Converte o NeuralNetwork para JSON
-    cJSON *json_response = neuralNetworkToJSON(FederatedLearningInstance->NeuralNetwork);
+    cJSON *json_response = federatedLearningToJSON(FederatedLearningInstance);
 
     // Converte o JSON para uma string
     char *response_str = cJSON_Print(json_response);
@@ -122,12 +91,15 @@ void handle_get_globalmodel(int client_socket) {
 void handle_post_globalmodel(int client_socket, const char *request_body) {
     // Parseie o corpo JSON usando cJSON
     cJSON *jsonModel = cJSON_Parse(request_body);
-    if (jsonModel != NULL) {
-        // Converta o JSON para a estrutura NeuralNetwork
-        //NeuralNetwork* receivedNetwork = jsonToNeuralNetwork(jsonModel);
+    // char* jsonString = cJSON_Print(jsonModel);
+    // printf("%s\n", jsonString);
 
-        // Faça o que for necessário com a estrutura receivedNetwork
-        // ...
+
+    if (jsonModel != NULL) {
+
+        FederatedLearning *FederatedLearningInstance = JSONToFederatedLearning(jsonModel);
+
+        //printf("\n\n%d\n\n",FederatedLearningInstance->trainingscounter);
 
         // Libere a memória alocada
         cJSON_Delete(jsonModel);

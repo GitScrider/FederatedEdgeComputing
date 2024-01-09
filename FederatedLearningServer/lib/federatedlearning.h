@@ -1,13 +1,13 @@
 #ifndef FEDERATEDLEARNING_H
 #define FEDERATEDLEARNING_H
 
+#include "../lib/cJSON.h"
 #include <pthread.h>
 
 typedef struct Weight {
   float weight;
   struct Weight * previousweight, * nextweight;
-}
-Weight;
+}Weight;
 
 typedef struct Neuron {
   char neurontype[20];
@@ -16,33 +16,30 @@ typedef struct Neuron {
   float bias;
   struct Weight * firstweight, * lastweight;
   struct Neuron * nextneuron, * previousneuron;
-}
-Neuron;
+}Neuron;
 
 typedef struct Layer {
   int neurons;
   struct Neuron * firstneuron, * lastneuron;
   struct Layer * previouslayer, * nextlayer;
-}
-Layer;
+}Layer;
 
 typedef struct NeuralNetwork {
   int layers;
   int * neuronsInEachLayer;
   struct Layer * firstlayer, * lastlayer;
 
-}
-NeuralNetwork;
+}NeuralNetwork;
 
 typedef struct FederatedLearning{
     int globalmodelstatus;
-    int trainingsnumber;
+    int trainingscounter;
     NeuralNetwork *NeuralNetwork;
-} 
-FederatedLearning;
+}FederatedLearning;
 
+
+//Methods
 FederatedLearning *getFederatedLearningInstance();
-//cJSON* neuralNetworkToJSON(const NeuralNetwork* neuralNetwork);
 void setFederatedLearningGlobalModel();
 
 #endif

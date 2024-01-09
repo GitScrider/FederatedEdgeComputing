@@ -1,5 +1,5 @@
 #include "../lib/federatedlearning.h"
-#include "../lib/cJSON.h"
+#include "../lib/JSONConverter.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -152,52 +152,12 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
 }
 
 
+// void FedSGD(FederatedLearning * newinstance ){
 
-// Função para converter uma instância da NeuralNetwork em JSON
-cJSON* neuralNetworkToJSON(const NeuralNetwork* neuralNetwork) {
-    cJSON* root = cJSON_CreateObject();
-    cJSON_AddItemToObject(root, "layers", cJSON_CreateNumber(neuralNetwork->layers));
+// FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();
 
-    cJSON* layersArray = cJSON_CreateArray();
-    struct Layer* currentLayer = neuralNetwork->firstlayer;
 
-    while (currentLayer != NULL) {
-        cJSON* layerObject = cJSON_CreateObject();
-        cJSON_AddItemToObject(layerObject, "neurons", cJSON_CreateNumber(currentLayer->neurons));
-
-        cJSON* neuronsArray = cJSON_CreateArray();
-        struct Neuron* currentNeuron = currentLayer->firstneuron;
-
-        while (currentNeuron != NULL) {
-            cJSON* neuronObject = cJSON_CreateObject();
-            cJSON_AddItemToObject(neuronObject, "neurontype", cJSON_CreateString(currentNeuron->neurontype));
-            cJSON_AddItemToObject(neuronObject, "weights", cJSON_CreateNumber(currentNeuron->weights));
-
-            // Adiciona um array de pesos para cada neurônio
-            cJSON* weightsArray = cJSON_CreateArray();
-            struct Weight* currentWeight = currentNeuron->firstweight;
-
-            while (currentWeight != NULL) {
-                cJSON_AddItemToArray(weightsArray, cJSON_CreateNumber(currentWeight->weight));
-                currentWeight = currentWeight->nextweight;
-            }
-
-            cJSON_AddItemToObject(neuronObject, "weightsArray", weightsArray);
-
-            cJSON_AddItemToArray(neuronsArray, neuronObject);
-            currentNeuron = currentNeuron->nextneuron;
-        }
-
-        cJSON_AddItemToObject(layerObject, "neuronsArray", neuronsArray);
-        cJSON_AddItemToArray(layersArray, layerObject);
-        currentLayer = currentLayer->nextlayer;
-    }
-
-    cJSON_AddItemToObject(root, "layersArray", layersArray);
-
-    return root;
-}
-
+// }
 
 void setFederatedLearningGlobalModel() {
     FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();
@@ -208,15 +168,15 @@ void setFederatedLearningGlobalModel() {
     printf("Neural Network Started!\n");
     //PrintNeuralNeuralNetWork(instance.NeuralNetwork);
 
-    cJSON* jsonNeuralNetwork = neuralNetworkToJSON(federatedLearningInstance->NeuralNetwork);
+    //cJSON* jsonFederatedLearning = federatedLearningToJSON(federatedLearningInstance);
 
     //Imprimir o JSON resultante
-    char* jsonString = cJSON_Print(jsonNeuralNetwork);
-    printf("%s\n", jsonString);
+    // char* jsonString = cJSON_Print(jsonFederatedLearning);
+    // printf("%s\n", jsonString);
 
     // Liberar a memória alocada
-    cJSON_Delete(jsonNeuralNetwork);
-    free(jsonString);
+    // cJSON_Delete(jsonFederatedLearning);
+    // free(jsonString);
 }
 
 FederatedLearning *getFederatedLearningInstance() {
@@ -226,8 +186,10 @@ FederatedLearning *getFederatedLearningInstance() {
         // Inicialize a NeuralNetwork conforme necessário
         instance.NeuralNetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
         instance.globalmodelstatus = 0;
+        instance.trainingscounter = 0;
         // Outras inicializações
     }
     pthread_mutex_unlock(&singletonMutex);  
     return &instance;
 }
+
