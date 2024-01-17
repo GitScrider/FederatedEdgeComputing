@@ -34,7 +34,7 @@ typedef struct NeuralNetwork {
 typedef struct FederatedLearning{
     int globalmodelstatus;
     int trainingscounter;
-    NeuralNetwork *NeuralNetwork;
+    NeuralNetwork *neuralnetwork;
 }FederatedLearning;
 
 

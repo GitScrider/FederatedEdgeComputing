@@ -161,9 +161,9 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
 
 void setFederatedLearningGlobalModel() {
     FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();
-    federatedLearningInstance->NeuralNetwork->layers = 4;
+    federatedLearningInstance->neuralnetwork->layers = 4;
     int vector[] = {4, 4, 2, 3};
-    InitializeNeuralNetWork(federatedLearningInstance->NeuralNetwork, vector);
+    InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, vector);
     federatedLearningInstance->globalmodelstatus=1;
     printf("Neural Network Started!\n");
     //PrintNeuralNeuralNetWork(instance.NeuralNetwork);
@@ -182,9 +182,9 @@ void setFederatedLearningGlobalModel() {
 FederatedLearning *getFederatedLearningInstance() {
     static FederatedLearning instance;
     pthread_mutex_lock(&singletonMutex);
-    if (instance.NeuralNetwork == NULL) {
+    if (instance.neuralnetwork == NULL) {
         // Inicialize a NeuralNetwork conforme necessário
-        instance.NeuralNetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
+        instance.neuralnetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
         instance.globalmodelstatus = 0;
         instance.trainingscounter = 0;
         // Outras inicializações

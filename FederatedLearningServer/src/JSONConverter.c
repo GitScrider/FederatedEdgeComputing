@@ -12,12 +12,12 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
     cJSON_AddItemToObject(root, "trainingscounter", cJSON_CreateNumber(federatedLearning->trainingscounter));
 
     cJSON* jsonNeuralNetwork = cJSON_CreateObject();
-    cJSON_AddItemToObject(root, "NeuralNetwork", jsonNeuralNetwork);
+    cJSON_AddItemToObject(root, "neuralnetwork", jsonNeuralNetwork);
 
-    cJSON_AddItemToObject(jsonNeuralNetwork, "layers", cJSON_CreateNumber(federatedLearning->NeuralNetwork->layers));
+    cJSON_AddItemToObject(jsonNeuralNetwork, "layers", cJSON_CreateNumber(federatedLearning->neuralnetwork->layers));
 
     cJSON* layersArray = cJSON_CreateArray();
-    struct Layer* currentLayer = federatedLearning->NeuralNetwork->firstlayer;
+    struct Layer* currentLayer = federatedLearning->neuralnetwork->firstlayer;
 
     while (currentLayer != NULL) {
         cJSON* layerObject = cJSON_CreateObject();
@@ -245,13 +245,13 @@ FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
     cJSON* neuralNetworkItem = cJSON_GetObjectItem(json, "neuronnetwork");
     if (cJSON_IsObject(neuralNetworkItem)) {
         // Chamada recursiva para converter o JSON da NeuralNetwork
-        federatedLearning->NeuralNetwork = JSONToNeuralNetwork(neuralNetworkItem);
+        federatedLearning->neuralnetwork = JSONToNeuralNetwork(neuralNetworkItem);
     } else {
         // Valor inválido ou ausente, inicialize com um NeuralNetwork vazio ou trate o erro conforme necessário
-        federatedLearning->NeuralNetwork = NULL;
+        federatedLearning->neuralnetwork = NULL;
     }
 
-    PrintNeuralNeuralNetWork(federatedLearning->NeuralNetwork);
+    PrintNeuralNeuralNetWork(federatedLearning->neuralnetwork);
 
     return federatedLearning;
 }
