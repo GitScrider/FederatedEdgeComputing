@@ -4,3 +4,7 @@
 FILE(GLOB_RECURSE app_sources ${CMAKE_SOURCE_DIR}/src/*.*)
 
 idf_component_register(SRCS ${app_sources})
+
+#spiffs_create_partition_image(spiffs ${CMAKE_SOURCE_DIR}/data FLASH_IN_PROJECT)
+
+spiffs_create_partition_image(storage ../data FLASH_IN_PROJECT)

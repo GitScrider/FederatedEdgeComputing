@@ -4,178 +4,90 @@
 #include <time.h>
 #include <string.h>
 
+#include <federatedlearning.h>
 
-typedef struct Weight {
-  float weight;
-  struct Weight * previousweight, * nextweight;
-}Weight;
-
-typedef struct Neuron {
-  char neurontype[20];
-  int weights;
-  float activationfunctionvalue;
-  float bias;
-  struct Weight * firstweight, * lastweight;
-  struct Neuron * nextneuron, * previousneuron;
-}Neuron;
-
-typedef struct Layer {
-  int neurons;
-  struct Neuron * firstneuron, * lastneuron;
-  struct Layer * previouslayer, * nextlayer;
-}Layer;
-
-typedef struct NeuralNetwork {
-  int layers;
-  int * neuronsInEachLayer;
-  struct Layer * firstlayer, * lastlayer;
-
-}NeuralNetwork;
+#include "esp_spiffs.h"
+#include "esp_log.h"
+#include "esp_heap_caps.h"
 
 
-void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
+//esp-profiler
 
-  int i = 0, j = 0, k = 0;
+static const char* TAG  = "FileSystem";
 
-  Layer * currentlayer = neuralnetwork -> firstlayer;
-  while (currentlayer != NULL) {
 
-    i++;
-    printf("layer %d neurons: %d\n", i, currentlayer -> neurons);
+void teste( ){
 
-    Neuron * currentneuron = currentlayer -> firstneuron;
+    printf("🐉\n");
+}
 
-    while (currentneuron != NULL) {
-
-      j++;
-      printf("%s neuron %d - weights: %d\n",currentneuron->neurontype , j,currentneuron -> weights);
-
-      Weight * currentweight = currentneuron -> firstweight;
-
-      while (currentweight != NULL) {
-
-        k++;
-        printf("%d value: %.10f ", k, currentweight -> weight);
-
-        currentweight = currentweight -> nextweight;
-      }
-      printf("\n");
-      k = 0;
-      currentneuron = currentneuron -> nextneuron;
+void PrintNeuralNetwork( NeuralNetwork* neuralnetwork) {
+    if (neuralnetwork == NULL) {
+        printf("Neural Network is NULL\n");
+        return;
     }
-    j = 0;
-    currentlayer = currentlayer -> nextlayer;
 
-  }
-  i = 0;
-  printf("\n");
+    printf("Neural Network Layers: %d\n", neuralnetwork->layers);
+
+    Layer* currentLayer = neuralnetwork->firstlayer;
+    int layerIndex = 1;
+
+    while (currentLayer != NULL) {
+        printf("\nLayer %d Neurons: %d\n", layerIndex, currentLayer->neurons);
+
+        Neuron* currentNeuron = currentLayer->firstneuron;
+        int neuronIndex = 1;
+
+        while (currentNeuron != NULL) {
+            printf("  Neuron %d Type: %s Weights: %d\n", neuronIndex, currentNeuron->neurontype, currentNeuron->weights);
+
+            Weight* currentWeight = currentNeuron->firstweight;
+            int weightIndex = 1;
+
+            while (currentWeight != NULL) {
+                printf("    Weight %d: %.2f\n", weightIndex, currentWeight->weight);
+
+                currentWeight = currentWeight->nextweight;
+                weightIndex++;
+            }
+
+            currentNeuron = currentNeuron->nextneuron;
+            neuronIndex++;
+        }
+
+        currentLayer = currentLayer->nextlayer;
+        layerIndex++;
+    }
+}
+
+
+void replaceNeuralNetwork(FederatedLearning * newfederatedlearninginstance){
+    FederatedLearning * federatedlearninginstance =  getFederatedLearningInstance();
+    federatedlearninginstance->neuralnetwork = newfederatedlearninginstance->neuralnetwork;
+    federatedlearninginstance->trainingscounter=0;
+}
+
+void mergeNeuralNetwork(FederatedLearning * newfederatedlearninginstance){
 
 }
 
-void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachLayerVector) {
 
-  // Inicialize a semente do gerador de números aleatórios
-  srand((unsigned) time(NULL));
-
-  neuralnetwork -> neuronsInEachLayer = (int * ) malloc(neuralnetwork -> layers * sizeof(int));
-
-  for (int i = 0; i < neuralnetwork -> layers; i++) {
-    neuralnetwork -> neuronsInEachLayer[i] = neuronsInEachLayerVector[i];
-  }
-
-  neuralnetwork -> firstlayer = NULL;
-  neuralnetwork -> lastlayer = NULL;
-
-  for (int i = 0; i < neuralnetwork -> layers; i++) {
-
-    Layer * newLayer = (Layer * ) malloc(sizeof(Layer));
-
-    if (newLayer == NULL) {
-      fprintf(stderr, "Alocation memory Failure\n");
-      exit(1);
+FederatedLearning *getFederatedLearningInstance() {
+    
+    static FederatedLearning instance;
+    if (instance.neuralnetwork == NULL) {
+        // Inicialize a NeuralNetwork conforme necessário
+        instance.neuralnetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
+        instance.globalmodelstatus = 0;
+        instance.trainingscounter = 0;
+        // Outras inicializações
     }
 
-    newLayer -> neurons = neuralnetwork -> neuronsInEachLayer[i];
-    newLayer -> nextlayer = NULL;
-    newLayer -> previouslayer = newLayer -> nextlayer;
-    newLayer -> firstneuron = NULL;
-    newLayer -> lastneuron = newLayer -> firstneuron;
-
-    if (neuralnetwork -> lastlayer == NULL) {
-      neuralnetwork -> firstlayer = newLayer;
-    } else {
-      neuralnetwork -> lastlayer -> nextlayer = newLayer;
-      newLayer -> previouslayer = neuralnetwork -> lastlayer;
-    }
-
-    neuralnetwork -> lastlayer = newLayer;
-
-    for (int j = 0; j < newLayer -> neurons; j++) {
-
-      Neuron * newneuron = (Neuron * ) malloc(sizeof(Neuron));
-
-      if (newneuron == NULL) {
-        fprintf(stderr, "Alocation memory Failure\n");
-        exit(1);
-      }
-
-      if (i == 0) {
-        strcpy(newneuron->neurontype, "INPUT");
-        newneuron -> weights = 0;
-      }
-      else if(i==neuralnetwork -> layers - 1){
-        strcpy(newneuron->neurontype, "OUTPUT");
-        newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-
-      } 
-      else {
-        strcpy(newneuron->neurontype, "HIDDEN");
-        newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-      }
-
-      newneuron -> nextneuron = NULL;
-      newneuron -> previousneuron = newneuron -> nextneuron;
-      newneuron -> firstweight = NULL;
-      newneuron -> lastweight = newneuron -> firstweight;
-      newneuron -> nextneuron = NULL;
-      newneuron -> previousneuron = newneuron -> nextneuron;
-
-      if (neuralnetwork -> lastlayer -> lastneuron == NULL) {
-
-        neuralnetwork -> lastlayer -> firstneuron = newneuron;
-      } else {
-
-        neuralnetwork -> lastlayer -> lastneuron -> nextneuron = newneuron;
-        newneuron -> previousneuron = neuralnetwork -> lastlayer -> lastneuron;
-      }
-
-      neuralnetwork -> lastlayer -> lastneuron = newneuron;
-
-      for (int k = 0; k < newneuron -> weights; k++) {
-
-        Weight * newweight = (Weight * ) malloc(sizeof(Weight));
-
-        if (newweight == NULL) {
-          fprintf(stderr, "Alocation memory Failure\n");
-          exit(1);
-        }
-
-        newweight -> weight = (float)(rand() % 100) / 100.0; // Gere um número aleatório entre 0 e 99 e converta para float entre 0 e 1
-        //newweight->weight = 0.5;
-        newweight -> nextweight = NULL;
-        newweight -> previousweight = newweight -> nextweight;
-
-        if (newneuron -> lastweight == NULL) {
-          neuralnetwork -> lastlayer -> lastneuron -> firstweight = newweight;
-        } else {
-          neuralnetwork -> lastlayer -> lastneuron -> lastweight -> nextweight = newweight;
-          newweight -> previousweight = neuralnetwork -> lastlayer -> lastneuron -> lastweight;
-        }
-        newneuron -> lastweight = newweight;
-      }
-    }
-  }
+    return &instance;
 }
+
+//training algorithm
+
 
 float Sigmoid(float Z) {
   return 1.0 / (1.0 + exp(-Z));
@@ -206,6 +118,7 @@ void printMatriz(float **weights, int linhas, int colunas) {
     }
 }
 
+
 // InputNodes: The number of input neurons.
 // OutputNodes: The number of output neurons.
 void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int OutputNodes, float LearningRate,int epoch) {
@@ -213,7 +126,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
   float trainingsample[InputNodes + OutputNodes];
   float label[OutputNodes];
   float outputdata[OutputNodes];
-  float Error = 0.0;
+  //float Error = 0.0;
 
   //aux memory for backpropagation
   int  weightscolumn=0, weightslines=0, deltafunctionsnumber=0;
@@ -226,36 +139,36 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
   
 
  //Monta o sistema de arquivos SPIFFS
-    // esp_vfs_spiffs_conf_t conf = {
-    //     .base_path = "/storage",
-    //     .partition_label = NULL,
-    //     .max_files = 5,
-    //     .format_if_mount_failed = true
-    // };
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = "/storage",
+        .partition_label = NULL,
+        .max_files = 5,
+        .format_if_mount_failed = true
+    };
 
-    // esp_err_t ret = esp_vfs_spiffs_register(&conf);
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
     
-    // if(ret != ESP_OK){
-    //     ESP_LOGE(TAG,"Failed to initialize SPIFFS : (%s)",esp_err_to_name(ret) );
-    //     return;
-    // }
+    if(ret != ESP_OK){
+        ESP_LOGE(TAG,"Failed to initialize SPIFFS : (%s)",esp_err_to_name(ret) );
+        return;
+    }
     
-    // size_t total = 0, used = 0;
-    // ret = esp_spiffs_info(conf.partition_label,&total,&used); 
-    // if (ret != ESP_OK) {
-    //     ESP_LOGE(TAG,"Failed to read partition : (%s)",esp_err_to_name(ret) );
-    // }else{
-    //     ESP_LOGI(TAG,"Partition size - total %d, used %d",total,used);
-    // }
+    size_t total = 0, used = 0;
+    ret = esp_spiffs_info(conf.partition_label,&total,&used); 
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG,"Failed to read partition : (%s)",esp_err_to_name(ret) );
+    }else{
+        ESP_LOGI(TAG,"Partition size - total %d, used %d",total,used);
+    }
 
 
-  for (int TrainingCycle = 0; TrainingCycle < epoch; TrainingCycle++) {
+  //for (int TrainingCycle = 0; TrainingCycle < epoch; TrainingCycle++) {
 
     FILE * file;
     char line[1024];
 
     //Abre o arquivo CSV para leitura
-    file = fopen("dataset.csv", "r");
+    file = fopen("/storage/dataset.csv", "r");
 
     if (file == NULL) {
         perror("Erro ao abrir o arquivo");
@@ -264,8 +177,8 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
     // Lê cada linha do arquivo
     while (fgets(line, sizeof(line), file) != NULL) {
-    //for(int count =0;count<2;count++){
-      //fgets(line, sizeof(line), file);
+        // for(int count =0;count<10;count++){
+        // fgets(line, sizeof(line), file);
 
       // Divide a linha em campos usando a função strtok
         char * token = strtok(line, ",");
@@ -327,13 +240,13 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
             //printf("wieghts %d\n",currentneuron->weights);
             for (int j = 0;  j< currentneuron -> weights; j++) {
               Z += currentweight->weight * previousneuron->activationfunctionvalue;
-              //printf("W %f IN %f Z %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
+              //printf("W %.2f IN %.2f Z %.2f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
               currentweight =currentweight->nextweight;
               previousneuron = previousneuron ->nextneuron;
 
             }
             currentneuron -> activationfunctionvalue = Sigmoid(Z);
-            //printf("ATIVACAO %f\n",currentneuron -> activationfunctionvalue);
+            //printf("ATIVACAO %.2f\n",currentneuron -> activationfunctionvalue);
             Z = 0;
             currentneuron = currentneuron -> nextneuron;
             previousneuron = currentlayer->previouslayer->firstneuron;
@@ -341,22 +254,21 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
         currentlayer = currentlayer -> nextlayer;
       }
+
+
       //End FeedFoward
 
-      
-      //LOSS CALCULATION
       currentneuron = neuralnetwork -> lastlayer -> firstneuron;
       //getting the neurons output value for loss function
       for (int i = 0; i < OutputNodes; i++) {
         outputdata[i] = currentneuron -> activationfunctionvalue;
         currentneuron = currentneuron -> nextneuron;
-        //printf("label %f output %f \n",label[i],outputdata[i]);
       }
       //calculatting the error
-      Error = CategoricalCrossEntropy(label, outputdata, OutputNodes);
+      //Error = CategoricalCrossEntropy(label, outputdata, OutputNodes);
       //printf("Loss: %f\n", Error);
 
-      //END LOSSCALCULATION
+
 
       //printf("BACKPROPAGATION\n");
 
@@ -369,23 +281,35 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
         //verify the last layer
         if (layer == neuralnetwork -> layers) {
-          //printf("layer %d \n",layer);
+          //printf("camada %d \n",layer);
           
-          //allocate memory for delta functions
-          deltafunctionsnumber = 1;
-          deltafunctions = (float * ) malloc(deltafunctionsnumber * sizeof(float));
+          float neuronoutputvalue=0;
+          int labelposition = 0;
           currentneuron = currentlayer -> firstneuron;
 
           //getting the correct position associated to the label
-          for (int i = 0; i < currentlayer->neurons; i++) {
+          for (int i = 0; i < OutputNodes; i++) {
             if (label[i] == 1) {
-              deltafunctions[0] = CategoricalCrossEntropyDerivative(label[i], currentneuron -> activationfunctionvalue) * SigmoidDerivative(currentneuron -> activationfunctionvalue);
+              labelposition = i;
+              break;
+            }
+          }
+
+          //getting the neuron output where the label position is equal to 1
+          for (int i = 0; i < currentlayer -> neurons; i++) {
+            if (i == labelposition) {
+              neuronoutputvalue = currentneuron -> activationfunctionvalue;
               break;
             }
             currentneuron = currentneuron -> nextneuron;
           }
-          //printf("output value %f delta %f\n",currentneuron -> activationfunctionvalue,deltafunctions[0]);
+          //printf("%.2f\n",neuronoutputvalue);
 
+          //allocate memory for delta functions
+          deltafunctionsnumber = 1;
+          deltafunctions = (float * ) malloc(deltafunctionsnumber * sizeof(float));
+          deltafunctions[0] = CategoricalCrossEntropyDerivative(label[labelposition], neuronoutputvalue) * SigmoidDerivative(neuronoutputvalue);
+         // printf("delta %f\n", deltafunctions[0]);
 
           //alocate memory for weights matrix
           weightslines = currentlayer ->previouslayer -> neurons;
@@ -402,7 +326,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
           
           for (int i = 0; i < currentlayer->neurons; i++)
           {
-            if(label[i] == 1){
+            if(i == labelposition){
 
               previousneuron = currentlayer->previouslayer->firstneuron;
               currentweight = currentneuron->firstweight;
@@ -416,12 +340,11 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
               }
             }
 
-            currentneuron = currentneuron->nextneuron;
-
           }
 
         } 
         else{
+
           //printf("camada %d \n",layer);
 
           float * deltafunctionsaux = (float * ) malloc(deltafunctionsnumber * sizeof(float));
@@ -431,45 +354,47 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
           //printf("DELTAS 1\n");
 
-          //calculatting delta
           currentneuron = currentlayer->firstneuron;
-
+          //Neuron * nextneuron = currentlayer->nextlayer->firstneuron;
           for (int i = 0; i < weightslines; i++) {
             deltafunctionaccumulation = 0;
             for (int j = 0; j < weightscolumn; j++) {
-              //printf("Da%d %f * W %f ",j, deltafunctionsaux[j], weights[i][j]);
+             // printf("Da%d %f * W %f ",j, deltafunctionsaux[j], weights[i][j]);
               deltafunctionaccumulation += deltafunctionsaux[j] * weights[i][j];
             }
           
             deltafunctions[i] = deltafunctionaccumulation * SigmoidDerivative(currentneuron->activationfunctionvalue);
-            //printf("A %f Dn%i %f\n",currentneuron->activationfunctionvalue,i, deltafunctions[i]);
+           // printf("A %f Dn%i %f\n",currentneuron->activationfunctionvalue,i, deltafunctions[i]);
             
             currentneuron = currentneuron->nextneuron;
           }
 
+
+
           weightscolumn = weightslines;
           weightslines = currentlayer -> previouslayer -> neurons;
           deltafunctionsnumber = weightslines;
-          
           //printf("wl %d wc %d\n",weightslines,weightscolumn);
+          weights = (float ** ) malloc(weightslines * sizeof(float * ));
           
-          weights = (float ** ) malloc(weightslines * sizeof(float * ));          
           for (int i = 0; i < weightslines; i++) {
             weights[i] = (float * ) malloc(weightscolumn * sizeof(float));
           }
 
+          
           currentneuron = currentlayer->firstneuron;
-          Neuron *previousneuron;
+          Neuron *previousneuron; 
+          
           
           for(int i = 0; i< currentlayer->neurons;i++){
             
             currentweight = currentneuron->firstweight;
             previousneuron = currentlayer->previouslayer->firstneuron;
             for (int j = 0; j < currentneuron->weights; j++){
-              //printf("W %f D %f A %f GW %f",currentweight->weight,deltafunctions[i],previousneuron->activationfunctionvalue,- deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate);
+              //printf("W %.2f D %.2f A %.2f GW %f",currentweight->weight,deltafunctions[i],previousneuron->activationfunctionvalue,- deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate);
               currentweight->weight += - deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate;
               weights[j][i] = currentweight->weight;
-              //printf(" Wn %f \n",currentweight->weight);
+              //printf(" Wn %f ///",currentweight->weight);
               currentweight = currentweight->nextweight;
               previousneuron = previousneuron->nextneuron;
             }
@@ -500,31 +425,18 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
       }
 
     //printf("Loss: %f\n",Error);
-    //size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    //printf("Free Heap Size: %u bytes\n", free_heap);
+    size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    printf("Free Heap Size: %u bytes\n", free_heap);
 
 
     }
 
     // Fecha o arquivo
     fclose(file);
-    printf("epoch %d Loss: %f\n",TrainingCycle+1,Error);
-    //printf("epoch %d \n",TrainingCycle+1);
 
-  }
+  //}
 
+    //printf("epoch %d Loss: %f\n",TrainingCycle+1,Error);
 
-
-}
-
-int main() {
-
-  NeuralNetwork neuralnetwork;
-  neuralnetwork.layers = 4;
-  int vector[] = {4,4,2,3};
-
-  InitializeNeuralNetWork( & neuralnetwork, vector);
-  PrintNeuralNeuralNetWork( & neuralnetwork);
-  NeuralNetworkTraining( & neuralnetwork, 4, 3, 0.001,1000);
 
 }
