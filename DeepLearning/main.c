@@ -197,6 +197,81 @@ float CategoricalCrossEntropy(float * label, float * output, int labelsize) {
   return -sum;
 }
 
+
+void freeWeight(Weight *weight) {
+    if(weight!=NULL){
+        free(weight);        
+    }
+}
+
+void freeNeuron(Neuron *neuron) {
+    if(neuron!=NULL){
+        free(neuron);        
+    }
+}
+
+void freeLayer(Layer *layer) {
+    if(layer!=NULL){
+        free(layer);        
+    }
+}
+
+void freeNeuralNetwork(NeuralNetwork neuralnetwork) {
+      //printf("teste 0");
+    
+    Layer *currentlayer = neuralnetwork.firstlayer;
+
+    while (currentlayer != NULL) {
+      //printf("teste 1");
+        // Libere a memória dos neurônios na camada atual
+        Neuron *currentneuron = currentlayer->firstneuron;
+        while (currentneuron != NULL) {
+            //printf("teste 2");
+
+            // Libere a memória dos pesos associados ao neurônio atual
+            Weight *currentweight = currentneuron->firstweight;
+            while (currentweight != NULL) {
+                //printf("teste 3");
+
+                Weight *nextweight = currentweight->nextweight;
+                freeWeight(currentweight);
+                currentweight = nextweight;
+            }
+
+            // Libere a memória do neurônio atual
+            Neuron *nextneuron = currentneuron->nextneuron;
+            freeNeuron(currentneuron);
+            currentneuron = nextneuron;
+        }
+
+        // Libere a memória da camada atual
+        Layer *nextlayer = currentlayer->nextlayer;
+        freeLayer(currentlayer);
+        currentlayer = nextlayer;
+    }
+
+    // Libere a memória da NeuralNetwork
+    free(neuralnetwork.neuronsInEachLayer);
+    //free(neuralnetwork);
+}
+
+void freeVector(float *vector) {
+    if (vector != NULL) {
+        free(vector);
+    }
+}
+
+void freeMatrix(float **matrix, int lines) {
+    if (matrix != NULL) {
+        for (int i = 0; i < lines; i++) {
+            if (matrix[i] != NULL) {
+                free(matrix[i]);
+            }
+        }
+        free(matrix);
+    }
+}
+
 void printMatriz(float **weights, int linhas, int colunas) {
     for (int i = 0; i < linhas; i++) {
         for (int j = 0; j < colunas; j++) {
@@ -215,10 +290,17 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
   float outputdata[OutputNodes];
   float Error = 0.0;
 
+  FILE * file = NULL;
+  char line[1024];
+
+
+
   //aux memory for backpropagation
   int  weightscolumn=0, weightslines=0, deltafunctionsnumber=0;
-  float ** weights = malloc(weightslines * sizeof(float *)); // matrix control for weights;
-  float * deltafunctions = malloc(deltafunctionsnumber * sizeof(float)); //vector control for delta functions
+  //float ** weights = malloc(weightslines * sizeof(float *)); // matrix control for weights;
+  //float * deltafunctions = malloc(deltafunctionsnumber * sizeof(float)); //vector control for delta functions
+  float **weights = NULL;
+  float *deltafunctions = NULL;
   // variables to cycle through pointers
   Layer * currentlayer = neuralnetwork -> firstlayer;
   Neuron * currentneuron = currentlayer -> firstneuron;
@@ -251,11 +333,10 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
   for (int TrainingCycle = 0; TrainingCycle < epoch; TrainingCycle++) {
 
-    FILE * file;
-    char line[1024];
 
     //Abre o arquivo CSV para leitura
-    file = fopen("dataset.csv", "r");
+    file = fopen("dataset/dataset.csv", "r");
+
 
     if (file == NULL) {
         perror("Erro ao abrir o arquivo");
@@ -268,12 +349,12 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
       //fgets(line, sizeof(line), file);
 
       // Divide a linha em campos usando a função strtok
-        char * token = strtok(line, ",");
+        char * token = strtok(line, ","); 
 
         for (int i = 0; i < 7; i++){
             token = strtok(NULL, ",");
             if (token != NULL) {
-            trainingsample[i] = strtof(token, NULL);
+              trainingsample[i] = strtof(token, NULL);
             } else {
             // Lidando com o caso em que não há dados suficientes na linha
             printf("Erro: Não há dados suficientes para preencher InputData na linha.\n");
@@ -285,13 +366,13 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
       // Exemplo: exibindo os dados da linha
 
-    //    trainingsample[0] = 5.1;
-    //    trainingsample[1] = 3.5;
-    //    trainingsample[2] = 1.4;
-    //    trainingsample[3] = 0.2;
-    //    trainingsample[4] = 1;
-    //    trainingsample[5] = 0;
-    //    trainingsample[6] = 0;
+      //  trainingsample[0] = 5.1;
+      //  trainingsample[1] = 3.5;
+      //  trainingsample[2] = 1.4;
+      //  trainingsample[3] = 0.2;
+      //  trainingsample[4] = 1;
+      //  trainingsample[5] = 0;
+      //  trainingsample[6] = 0;
 
       //printf("InputData: [%.1f, %.1f, %.1f, %.1f, %.1f, %.1f, %.1f]\n", trainingsample[0], trainingsample[1], trainingsample[2], trainingsample[3], trainingsample[4], trainingsample[5], trainingsample[6]);
 
@@ -309,11 +390,9 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
       }
 
-
-      currentlayer = currentlayer->nextlayer;
       //printf("FEEDFOWARD\n");
-
       //FEEDFOWARD
+      currentlayer = currentlayer->nextlayer;
       for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
 
           Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
@@ -343,7 +422,6 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
       }
       //End FeedFoward
 
-      
       //LOSS CALCULATION
       currentneuron = neuralnetwork -> lastlayer -> firstneuron;
       //getting the neurons output value for loss function
@@ -352,7 +430,6 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
         currentneuron = currentneuron -> nextneuron;
         //printf("label %f output %f \n",label[i],outputdata[i]);
       }
-      //calculatting the error
       Error = CategoricalCrossEntropy(label, outputdata, OutputNodes);
       //printf("Loss: %f\n", Error);
 
@@ -360,17 +437,14 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
       //printf("BACKPROPAGATION\n");
 
-
       //BACKPROPAGATION
-
       currentlayer = neuralnetwork -> lastlayer;
-
       for (int layer = neuralnetwork -> layers ; layer > 1; layer--) {
 
         //verify the last layer
         if (layer == neuralnetwork -> layers) {
           //printf("layer %d \n",layer);
-          
+          //freeVector(deltafunctions);
           //allocate memory for delta functions
           deltafunctionsnumber = 1;
           deltafunctions = (float * ) malloc(deltafunctionsnumber * sizeof(float));
@@ -388,6 +462,11 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
 
           //alocate memory for weights matrix
+          
+          // if(weights!=NULL){
+          //   free(weights);
+          // }
+
           weightslines = currentlayer ->previouslayer -> neurons;
           weightscolumn = 1;
 
@@ -425,8 +504,9 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
           //printf("camada %d \n",layer);
 
           float * deltafunctionsaux = (float * ) malloc(deltafunctionsnumber * sizeof(float));
-          memcpy(deltafunctionsaux, deltafunctions, deltafunctionsnumber * sizeof(int));
+          memcpy(deltafunctionsaux, deltafunctions, deltafunctionsnumber * sizeof(float));
           deltafunctions = (float * ) realloc(deltafunctions, currentlayer->neurons * sizeof(int));
+          
           float deltafunctionaccumulation;
 
           //printf("DELTAS 1\n");
@@ -446,6 +526,8 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
             
             currentneuron = currentneuron->nextneuron;
           }
+
+          freeMatrix(weights,weightslines);
 
           weightscolumn = weightslines;
           weightslines = currentlayer -> previouslayer -> neurons;
@@ -482,9 +564,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
           //printMatriz(weights,weightslines,weightscolumn);
 
 
-          if(deltafunctionsaux!=NULL){
-            free(deltafunctionsaux);
-          }
+        freeVector(deltafunctionsaux);
         
         }
 
@@ -492,12 +572,8 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
       }
 
-      if(weights!=NULL){
-        free(weights);
-      }
-      if(deltafunctions!=NULL){
-        free(deltafunctions);
-      }
+      freeMatrix(weights,weightslines);
+      freeVector(deltafunctions);
 
     //printf("Loss: %f\n",Error);
     //size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
@@ -508,6 +584,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int Ou
 
     // Fecha o arquivo
     fclose(file);
+
     printf("epoch %d Loss: %f\n",TrainingCycle+1,Error);
     //printf("epoch %d \n",TrainingCycle+1);
 
@@ -524,7 +601,9 @@ int main() {
   int vector[] = {4,4,2,3};
 
   InitializeNeuralNetWork( & neuralnetwork, vector);
-  PrintNeuralNeuralNetWork( & neuralnetwork);
-  NeuralNetworkTraining( & neuralnetwork, 4, 3, 0.001,1000);
+  //PrintNeuralNeuralNetWork( & neuralnetwork);
+  NeuralNetworkTraining( & neuralnetwork, 4, 3, 0.001,100);
+  
+  freeNeuralNetwork( neuralnetwork);
 
 }
