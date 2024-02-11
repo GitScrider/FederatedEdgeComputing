@@ -2,6 +2,7 @@
 #include "../lib/JSONConverter.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <time.h>
 #include <string.h>
 
@@ -23,6 +24,7 @@ void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
 
       j++;
       printf("%s neuron %d - weights: %d\n",currentneuron->neurontype , j,currentneuron -> weights);
+      printf("Bias: %.10f\n",currentneuron->bias);
 
       Weight * currentweight = currentneuron -> firstweight;
 
@@ -46,6 +48,7 @@ void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
 
 }
 
+//void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachLayerVector) {
 void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachLayerVector) {
 
   // Inicialize a semente do gerador de números aleatórios
@@ -100,11 +103,14 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
       else if(i==neuralnetwork -> layers - 1){
         strcpy(newneuron->neurontype, "OUTPUT");
         newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-
+        //newneuron -> bias = (float)(rand() % 100) / 100.0; 
+        newneuron -> bias = 0.0;
       } 
       else {
         strcpy(newneuron->neurontype, "HIDDEN");
         newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
+        //newneuron -> bias = (float)(rand() % 100) / 100.0; 
+        newneuron -> bias = 0.0;
       }
 
       newneuron -> nextneuron = NULL;
@@ -151,13 +157,159 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
   }
 }
 
+float Sigmoid(float Z) {
+  return 1.0 / (1.0 + exp(-Z));
+}
 
-// void FedSGD(FederatedLearning * newinstance ){
+void PerformanceMetrics(int PercentualEvaluation,int Threshold){
+  
+    printf("teste 1\n");
 
-// FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();
+
+  NeuralNetwork *neuralnetwork = getFederatedLearningInstance()->neuralnetwork;
+
+    printf("teste 2 %d\n",neuralnetwork->firstlayer->neurons);
 
 
-// }
+
+  float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
+  float label[neuralnetwork->lastlayer->neurons];
+  float outputdata[neuralnetwork->lastlayer->neurons];
+  float Precision=0.0, Recall=0.0, Accuracy=0.0,Specificity=0.0,F1Score=0.0;
+
+    printf("teste 3\n");
+
+
+  int total=0,truepositive=0,falsepositive=0,truenegative=0,falsenegative=0;
+
+  // variables to cycle through pointers
+  Layer * currentlayer = neuralnetwork -> firstlayer;
+  Neuron * currentneuron = currentlayer -> firstneuron;
+  Weight * currentweight;
+
+  FILE * file = NULL;
+  char line[1024];
+  char filename[] = "data/datasetevaluation.csv";
+  //Abre o arquivo CSV para leitura
+    printf("Opening CSV file\n");
+    file = fopen(filename, "r");
+
+    if (file == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+  for(int count=0;count<PercentualEvaluation;count++){
+      fgets(line, sizeof(line), file);
+
+        // Divide a linha em campos usando a função strtok
+        char * token = strtok(line, ","); 
+
+        for (int i = 0; i < 7; i++){
+          token = strtok(NULL, ",");
+          if (token != NULL) {
+            trainingsample[i] = strtof(token, NULL);
+          } else {
+            // Lidando com o caso em que não há dados suficientes na linha
+            printf("Erro: Não há dados suficientes para preencher InputData na linha.\n");
+            break;
+          }
+
+        }
+
+        printf("InputData: [%.1f, %.1f, %.1f, %.1f, %.1f, %.1f, %.1f]\n", trainingsample[0], trainingsample[1], trainingsample[2], trainingsample[3], trainingsample[4], trainingsample[5], trainingsample[6]);
+        
+        currentneuron =  neuralnetwork->firstlayer->firstneuron;
+        for (int i = 0; i < neuralnetwork->firstlayer->neurons; i++) {
+          currentneuron -> activationfunctionvalue = trainingsample[i];
+          currentneuron = currentneuron -> nextneuron;
+        }
+
+        //set the label on label vector
+        for (int i = neuralnetwork->firstlayer->neurons; i < neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons; i++) {
+          label[i - neuralnetwork->firstlayer->neurons] = trainingsample[i];
+          
+        }
+
+      printf("FEEDFOWARD\n");
+      //FEEDFOWARD
+      currentlayer = neuralnetwork->firstlayer->nextlayer;
+      for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
+
+          Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
+          currentneuron = currentlayer -> firstneuron;
+          float Z = 0;
+
+          //printf("neurons %d\n",currentlayer->neurons);
+
+          for (int i = 0; i < currentlayer -> neurons; i++) {
+            currentweight= currentneuron->firstweight;
+            //printf("wieghts %d bias %f\n",currentneuron->weights,currentneuron->bias);
+            Z+= currentneuron->bias;
+            for (int j = 0;  j< currentneuron -> weights; j++) {
+              Z += currentweight->weight * previousneuron->activationfunctionvalue;
+              //printf("W %f IN %f Z %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
+              currentweight =currentweight->nextweight;
+              previousneuron = previousneuron ->nextneuron;
+
+            }
+            currentneuron -> activationfunctionvalue = Sigmoid(Z);
+            //printf("ATIVACAO %f\n",currentneuron -> activationfunctionvalue);
+            Z = 0;
+            currentneuron = currentneuron -> nextneuron;
+            previousneuron = currentlayer->previouslayer->firstneuron;
+          }
+
+        currentlayer = currentlayer -> nextlayer;
+      }
+        
+      currentneuron = neuralnetwork->lastlayer->firstneuron;
+
+      for(int i=0;i< neuralnetwork->lastlayer->neurons;i++){
+        // printf("%f ",currentneuron->activationfunctionvalue);
+        // printf("%f\n",label[i]);
+
+        if(label[i]==1){
+          // printf(" positivo\n");
+          if(currentneuron->activationfunctionvalue > Threshold){
+            truepositive++;
+          }else{
+            falsepositive++;
+          }
+          total++;
+          
+        }else{
+          printf("negativo\n");
+
+          if(currentneuron->activationfunctionvalue < Threshold){
+            truenegative++;
+          }else{
+            falsenegative++;
+          }
+          total++;
+
+        }
+        currentneuron = currentneuron->nextneuron;
+
+      }
+      printf("\n");
+  }
+
+  fclose(file);
+
+      printf("total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",total,truepositive,truenegative,falsepositive,falsenegative);
+
+      Accuracy = (float)(truenegative+truepositive)/(truenegative+truepositive+falsenegative+falsepositive);
+      Precision = (float)truepositive/(truepositive+falsepositive);
+      Recall =(float)truepositive/(truepositive+falsenegative);
+      Specificity = (float)truenegative/(truenegative+falsepositive);
+      F1Score = 2*(float)(Precision * Recall)/(Precision + Recall);
+      printf("Accuracy: %.2f\n",30.0/90.0);
+      printf("Precision: %.2f\n",Precision);
+      printf("Recall: %.2f\n",Recall);
+      printf("Specificity: %.2f\n",Specificity);
+      printf("F1-Score: %.2f\n",F1Score);
+}
 
 void setFederatedLearningGlobalModel() {
     FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();

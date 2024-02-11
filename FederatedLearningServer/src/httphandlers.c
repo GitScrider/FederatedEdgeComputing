@@ -91,16 +91,14 @@ void handle_get_globalmodel(int client_socket) {
 void handle_post_globalmodel(int client_socket, const char *request_body) {
     // Parseie o corpo JSON usando cJSON
     cJSON *jsonModel = cJSON_Parse(request_body);
-    // char* jsonString = cJSON_Print(jsonModel);
-    // printf("%s\n", jsonString);
+    char* jsonString = cJSON_Print(jsonModel);
+    //printf("%s\n", jsonString);
 
 
     if (jsonModel != NULL) {
 
         FederatedLearning *FederatedLearningInstance = JSONToFederatedLearning(jsonModel);
-
-        //printf("\n\n%d\n\n",FederatedLearningInstance->trainingscounter);
-
+         
         // Libere a memória alocada
         cJSON_Delete(jsonModel);
     }

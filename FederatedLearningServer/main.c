@@ -19,6 +19,7 @@ int main() {
     printf("STATUS: %d\n",FDI->globalmodelstatus);
     setFederatedLearningGlobalModel();
     printf("STATUS: %d\n",FDI->globalmodelstatus);
+    PerformanceMetrics(30,0.5);
 
     // Inicializar o servidor HTTP em uma thread
     pthread_t http_thread;

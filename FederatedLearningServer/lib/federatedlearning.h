@@ -41,5 +41,5 @@ typedef struct FederatedLearning{
 //Methods
 FederatedLearning *getFederatedLearningInstance();
 void setFederatedLearningGlobalModel();
-
+void PerformanceMetrics(int PercentualEvaluation,int Threshold);
 #endif

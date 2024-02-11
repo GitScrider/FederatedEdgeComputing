@@ -30,6 +30,7 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
             cJSON* neuronObject = cJSON_CreateObject();
             cJSON_AddItemToObject(neuronObject, "neurontype", cJSON_CreateString(currentNeuron->neurontype));
             cJSON_AddItemToObject(neuronObject, "weights", cJSON_CreateNumber(currentNeuron->weights));
+            cJSON_AddItemToObject(neuronObject, "bias", cJSON_CreateNumber(currentNeuron->bias));
 
             // Adiciona um array de pesos para cada neurônio
             cJSON* weightsArray = cJSON_CreateArray();
@@ -61,162 +62,10 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
 
 //JSON TO FEDERATED LEARNING  
 
-Weight* JSONToWeight(const cJSON* json) {
-    if (json == NULL || !cJSON_IsNumber(json)) {
-        return NULL;  // JSON inválido
-    }
-
-    Weight* weight = (Weight*)malloc(sizeof(Weight));
-    if (weight == NULL) {
-        return NULL;  // Falha na alocação de memória
-    }
-
-    weight->weight = (float)json->valuedouble;
-    weight->previousweight = weight->nextweight = NULL;
-
-    return weight;
-}
-
-Neuron* JSONToNeuron(const cJSON* json) {
-    if (json == NULL || !cJSON_IsObject(json)) {
-        return NULL;  // JSON inválido
-    }
-
-    Neuron* neuron = (Neuron*)malloc(sizeof(Neuron));
-    if (neuron == NULL) {
-        return NULL;  // Falha na alocação de memória
-    }
-
-    // Obter os valores das chaves correspondentes
-    cJSON* neurontypeItem = cJSON_GetObjectItem(json, "neurontype");
-    cJSON* weightsItem = cJSON_GetObjectItem(json, "weights");
-    cJSON* weightsArrayItem = cJSON_GetObjectItem(json, "weightsArray");
-
-    if (cJSON_IsString(neurontypeItem)) {
-        strncpy(neuron->neurontype, neurontypeItem->valuestring, sizeof(neuron->neurontype));
-    } else {
-        // Valor inválido ou ausente, trate o erro conforme necessário
-    }
-
-    if (cJSON_IsNumber(weightsItem)) {
-        neuron->weights = weightsItem->valueint;
-    } else {
-        // Valor inválido ou ausente, trate o erro conforme necessário
-    }
-
-    neuron->firstweight = neuron->lastweight = NULL;  // Inicializar os pesos como vazios
-
-    cJSON* weightElement;
-    cJSON_ArrayForEach(weightElement, weightsArrayItem) {
-        // Chamada recursiva para converter o JSON de cada peso
-        Weight* weight = JSONToWeight(weightElement);
-        if (weight != NULL) {
-            // Adicionar o peso à lista do Neuron
-            if (neuron->lastweight == NULL) {
-                neuron->firstweight = neuron->lastweight = weight;
-            } else {
-                neuron->lastweight->nextweight = weight;
-                weight->previousweight = neuron->lastweight;
-                neuron->lastweight = weight;
-            }
-        }
-    }
-
-    return neuron;
-}
-
-Layer* JSONToLayer(const cJSON* json) {
-    if (json == NULL || !cJSON_IsObject(json)) {
-        return NULL;  // JSON inválido
-    }
-
-    Layer* layer = (Layer*)malloc(sizeof(Layer));
-    if (layer == NULL) {
-        return NULL;  // Falha na alocação de memória
-    }
-
-    // Obter os valores das chaves correspondentes
-    cJSON* neuronsItem = cJSON_GetObjectItem(json, "neurons");
-    cJSON* neuronsArrayItem = cJSON_GetObjectItem(json, "neuronsArray");
-
-    if (cJSON_IsNumber(neuronsItem)) {
-        layer->neurons = neuronsItem->valueint;
-    } else {
-        // Valor inválido ou ausente, trate o erro conforme necessário
-    }
-
-    layer->firstneuron = layer->lastneuron = NULL;  // Inicializar os neurônios como vazios
-
-    cJSON* neuronElement;
-    cJSON_ArrayForEach(neuronElement, neuronsArrayItem) {
-        // Chamada recursiva para converter o JSON de cada neurônio
-        Neuron* neuron = JSONToNeuron(neuronElement);
-        if (neuron != NULL) {
-            // Adicionar o neurônio à lista da Layer
-            if (layer->lastneuron == NULL) {
-                layer->firstneuron = layer->lastneuron = neuron;
-            } else {
-                layer->lastneuron->nextneuron = neuron;
-                neuron->previousneuron = layer->lastneuron;
-                layer->lastneuron = neuron;
-            }
-        }
-    }
-
-    return layer;
-}
-
-
-NeuralNetwork* JSONToNeuralNetwork(const cJSON* json) {
-    if (json == NULL || !cJSON_IsObject(json)) {
-        return NULL;  // JSON inválido
-    }
-
-    NeuralNetwork* neuralNetwork = (NeuralNetwork*)malloc(sizeof(NeuralNetwork));
-    if (neuralNetwork == NULL) {
-        return NULL;  // Falha na alocação de memória
-    }
-
-    // Obter o valor da chave "layers"
-    cJSON* layersItem = cJSON_GetObjectItem(json, "layers");
-    if (cJSON_IsNumber(layersItem)) {
-        neuralNetwork->layers = layersItem->valueint;
-    } else {
-        neuralNetwork->layers = 0;  // Valor padrão ou tratamento de erro
-    }
-
-    // Obter o valor da chave "layersArray"
-    cJSON* layersArrayItem = cJSON_GetObjectItem(json, "layersArray");
-    if (cJSON_IsArray(layersArrayItem)) {
-        neuralNetwork->firstlayer = neuralNetwork->lastlayer = NULL;  // Inicializar as camadas como vazias
-
-        cJSON* layerElement;
-        cJSON_ArrayForEach(layerElement, layersArrayItem) {
-            // Chamada recursiva para converter o JSON de cada camada
-            Layer* layer = JSONToLayer(layerElement);
-            if (layer != NULL) {
-                // Adicionar a camada à lista da NeuralNetwork
-                if (neuralNetwork->lastlayer == NULL) {
-                    neuralNetwork->firstlayer = neuralNetwork->lastlayer = layer;
-                } else {
-                    neuralNetwork->lastlayer->nextlayer = layer;
-                    layer->previouslayer = neuralNetwork->lastlayer;
-                    neuralNetwork->lastlayer = layer;
-                }
-            }
-        }
-    } else {
-        // Valor inválido ou ausente, trate o erro conforme necessário
-    }
-
-    return neuralNetwork;
-}
-
-
 FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
     if (json == NULL || !cJSON_IsObject(json)) {
-      printf("nao foi possivel converter");
-        return NULL;  // JSON inválido
+        printf("Não foi possível converter.\n");
+        return NULL;
     }
 
     FederatedLearning* federatedLearning = (FederatedLearning*)malloc(sizeof(FederatedLearning));
@@ -224,7 +73,6 @@ FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
         return NULL;  // Falha na alocação de memória
     }
 
-    // Obter o valor da chave "globalmodelstatus"
     cJSON* statusItem = cJSON_GetObjectItem(json, "globalmodelstatus");
     if (cJSON_IsNumber(statusItem)) {
         federatedLearning->globalmodelstatus = statusItem->valueint;
@@ -232,26 +80,166 @@ FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
         federatedLearning->globalmodelstatus = 0;  // Valor padrão ou tratamento de erro
     }
 
-    // Obter o valor da chave "trainingscounter"
+    printf("global model status %d\n",federatedLearning->globalmodelstatus);
+
     cJSON* trainingsCounterItem = cJSON_GetObjectItem(json, "trainingscounter");
     if (cJSON_IsNumber(trainingsCounterItem)) {
         federatedLearning->trainingscounter = trainingsCounterItem->valueint;
-        printf("\n\n%d\n\n",federatedLearning->trainingscounter);
     } else {
         federatedLearning->trainingscounter = 0;  // Valor padrão ou tratamento de erro
     }
 
-    // Obter o valor da chave "neuronnetwork"
-    cJSON* neuralNetworkItem = cJSON_GetObjectItem(json, "neuronnetwork");
+    printf("Training counter %d\n", federatedLearning->trainingscounter);
+
+    cJSON* neuralNetworkItem = cJSON_GetObjectItem(json, "neuralnetwork");
+    
     if (cJSON_IsObject(neuralNetworkItem)) {
-        // Chamada recursiva para converter o JSON da NeuralNetwork
-        federatedLearning->neuralnetwork = JSONToNeuralNetwork(neuralNetworkItem);
+        federatedLearning->neuralnetwork = (NeuralNetwork*)malloc(sizeof(NeuralNetwork));
+        printf("NeuralNetwork Created\n");
+
+        cJSON* layersItem = cJSON_GetObjectItem(neuralNetworkItem, "layers");
+        if (cJSON_IsNumber(layersItem)) {
+            federatedLearning->neuralnetwork->layers = layersItem->valueint;
+                printf("layers %d\n", federatedLearning->neuralnetwork->layers);
+
+            cJSON* layersArrayItem = cJSON_GetObjectItem(neuralNetworkItem, "layersArray");
+            if (cJSON_IsArray(layersArrayItem)) {
+                federatedLearning->neuralnetwork->firstlayer = federatedLearning->neuralnetwork->lastlayer = NULL;
+                int i=0;
+
+                cJSON* layerElement;
+                cJSON_ArrayForEach(layerElement, layersArrayItem) {
+                    printf("layer: %d", i);
+                    i++;
+                    Layer* layer = (Layer*)malloc(sizeof(Layer));
+                    if (layer == NULL) {
+                        return NULL;  
+                    }
+
+                    layer->firstneuron = layer->lastneuron = NULL;  
+                    layer->nextlayer = layer->previouslayer = NULL;
+                    cJSON* neuronsItem = cJSON_GetObjectItem(layerElement, "neurons");
+
+                    if (cJSON_IsNumber(neuronsItem)) {
+                        layer->neurons = neuronsItem->valueint;
+                    } else {
+                        printf("erro ao assossiar quantidades de neuronios a camada");
+                    }
+                    printf(" neurons: %d\n", layer->neurons);
+
+                    if (federatedLearning->neuralnetwork->lastlayer == NULL) {
+                        federatedLearning->neuralnetwork->firstlayer = federatedLearning->neuralnetwork->lastlayer = layer;
+                    } else {
+                        federatedLearning->neuralnetwork->lastlayer->nextlayer = layer;
+                        layer->previouslayer = federatedLearning->neuralnetwork->lastlayer;
+                        federatedLearning->neuralnetwork->lastlayer = layer;
+                    }
+
+                    cJSON* neuronsArrayItem = cJSON_GetObjectItem(layerElement, "neuronsArray");
+
+                    if(cJSON_IsArray(neuronsArrayItem)){
+                        int j=0;
+                        cJSON* neuronElement;
+                        cJSON_ArrayForEach(neuronElement, neuronsArrayItem) {
+                            
+                            printf("Neuron: %d", j);
+                            j++;
+
+                            Neuron* neuron = (Neuron*)malloc(sizeof(Neuron));
+                            if (neuron == NULL) {
+                                return NULL;  
+                            }
+
+                            neuron->nextneuron = neuron->previousneuron = NULL;
+                            neuron->firstweight = neuron->lastweight = NULL;
+                            cJSON* neurontypeItem = cJSON_GetObjectItem(neuronElement, "neurontype");
+
+                            if (cJSON_IsString(neurontypeItem)) {
+                                strncpy(neuron->neurontype, neurontypeItem->valuestring, sizeof(neuron->neurontype));
+                            } else {
+                                printf("erro ao assossiar o tipo do neuronio ao neuronio");
+
+                            }
+
+                                printf(" type %s",neuron->neurontype);
+
+                            cJSON* weightsItem = cJSON_GetObjectItem(neuronElement, "weights");
+
+                            if (cJSON_IsNumber(weightsItem)) {
+                                neuron->weights = weightsItem->valueint;
+                            } else {
+                                printf("erro ao assossiar quantidades de pesos ao neuronio");
+                            }
+
+                            printf(" Weights: %d\n", neuron->weights);
+
+
+                            cJSON* biasItem = cJSON_GetObjectItem(neuronElement, "bias");
+
+                            if (cJSON_IsNumber(biasItem)) {
+                                neuron->bias = (float)biasItem->valuedouble;
+                            } else {
+                                printf("erro ao assossiar quantidades de bias ao neuronio");
+                            }
+
+                            printf("Bias: %.2f\n", neuron->bias);
+
+
+                            if (layer->lastneuron == NULL) {
+                                layer->firstneuron = layer->lastneuron = neuron;
+                            } else {
+                                layer->lastneuron->nextneuron = neuron;
+                                neuron->previousneuron = layer->lastneuron;
+                                layer->lastneuron = neuron;
+                            }
+                            
+                            cJSON* weightsArrayItem = cJSON_GetObjectItem(neuronElement, "weightsArray");
+                            if(cJSON_IsArray(weightsArrayItem)){
+                                int k=0;
+                                cJSON* weightElement;
+                                cJSON_ArrayForEach(weightElement, weightsArrayItem) {
+                                    printf("weight: ");
+                                    k++;
+
+                                    Weight* weight = (Weight*)malloc(sizeof(Weight));
+                                    if (weight == NULL) {
+                                        return NULL;  // Falha na alocação de memória
+                                    }
+
+                                    weight->weight = (float)weightElement->valuedouble;
+                                    weight->previousweight = weight->nextweight = NULL;
+                                    printf(" %.2f\n", weight->weight);
+
+
+                                    if (neuron->lastweight == NULL) {
+                                        neuron->firstweight = neuron->lastweight = weight;
+                                    } else {
+                                        neuron->lastweight->nextweight = weight;
+                                        weight->previousweight = neuron->lastweight;
+                                        neuron->lastweight = weight;
+                                    }
+                                    
+                                }     
+                            }
+
+                           
+
+
+                        }
+                    }
+
+                }
+            } else {
+                // Tratar erro conforme necessário
+            }
+        } else {
+            // Tratar erro conforme necessário
+        }
     } else {
-        // Valor inválido ou ausente, inicialize com um NeuralNetwork vazio ou trate o erro conforme necessário
-        federatedLearning->neuralnetwork = NULL;
+        // Tratar erro conforme necessário
     }
 
-    PrintNeuralNeuralNetWork(federatedLearning->neuralnetwork);
+    //PrintNeuralNetwork(federatedLearning->neuralnetwork);
 
     return federatedLearning;
 }

@@ -6,7 +6,7 @@ INCDIR = lib
 BUILDDIR = .build
 PROGRAM_NAME = FederatedLearningServer
 TARGET = $(PROGRAM_NAME)
-LIBS = -lpthread -lwebsockets
+LIBS = -lpthread -lwebsockets -lm
 
 SOURCES := $(wildcard $(SRCDIR)/*.c)
 INCLUDES := $(wildcard $(INCDIR)/*.h)
