@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-//JSON TO FFEDERATED LEARNING  
+//FFEDERATED LEARNING TO JSON
 cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
     cJSON* root = cJSON_CreateObject();
 
@@ -30,6 +30,12 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
             cJSON* neuronObject = cJSON_CreateObject();
             cJSON_AddItemToObject(neuronObject, "neurontype", cJSON_CreateString(currentNeuron->neurontype));
             cJSON_AddItemToObject(neuronObject, "weights", cJSON_CreateNumber(currentNeuron->weights));
+            
+            // cJSON* biasArray = cJSON_CreateArray();
+            // cJSON_AddItemToArray(biasArray, cJSON_CreateNumber(currentNeuron->bias));
+            // cJSON_AddItemToObject(neuronObject, "bias", biasArray);
+            
+
             cJSON_AddItemToObject(neuronObject, "bias", cJSON_CreateNumber(currentNeuron->bias));
 
             // Adiciona um array de pesos para cada neurônio

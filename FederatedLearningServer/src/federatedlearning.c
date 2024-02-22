@@ -8,7 +8,7 @@
 
 static pthread_mutex_t singletonMutex = PTHREAD_MUTEX_INITIALIZER;
 
-void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
+void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork) {
 
   int i = 0, j = 0, k = 0;
 
@@ -103,15 +103,14 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
       else if(i==neuralnetwork -> layers - 1){
         strcpy(newneuron->neurontype, "OUTPUT");
         newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-        //newneuron -> bias = (float)(rand() % 100) / 100.0; 
-        newneuron -> bias = 0.0;
       } 
       else {
         strcpy(newneuron->neurontype, "HIDDEN");
         newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-        //newneuron -> bias = (float)(rand() % 100) / 100.0; 
-        newneuron -> bias = 0.0;
       }
+
+      newneuron -> bias = (float)(rand() % 10) / 100000.0; 
+      //newneuron -> bias = 0.0;
 
       newneuron -> nextneuron = NULL;
       newneuron -> previousneuron = newneuron -> nextneuron;
