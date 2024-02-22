@@ -1,5 +1,4 @@
 #include "JSONConverter.h"
-#include "federatedlearning.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -30,6 +29,7 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
             cJSON* neuronObject = cJSON_CreateObject();
             cJSON_AddItemToObject(neuronObject, "neurontype", cJSON_CreateString(currentNeuron->neurontype));
             cJSON_AddItemToObject(neuronObject, "weights", cJSON_CreateNumber(currentNeuron->weights));
+            cJSON_AddItemToObject(neuronObject, "bias", cJSON_CreateNumber(currentNeuron->bias));
 
             // Adiciona um array de pesos para cada neurônio
             cJSON* weightsArray = cJSON_CreateArray();
@@ -60,16 +60,6 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
 
 
 //JSON TO FEDERATED LEARNING  
-
-
-
-// Weight* JSONToWeight(const cJSON* json) {
-
-
-//     return weight;
-// }
-
-
 
 FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
     if (json == NULL || !cJSON_IsObject(json)) {
@@ -218,9 +208,6 @@ FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
                                     
                                 }     
                             }
-
-                           
-
 
                         }
                     }

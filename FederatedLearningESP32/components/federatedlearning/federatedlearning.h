@@ -40,10 +40,8 @@ typedef struct FederatedLearning{
 FederatedLearning *getFederatedLearningInstance();
 void replaceNeuralNetwork(FederatedLearning * newfederatedlearninginstance);
 void mergeNeuralNetwork(FederatedLearning * newfederatedlearninginstance);
-void PrintNeuralNetwork(NeuralNetwork *neuralnetwork);
-
-void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, int InputNodes, int OutputNodes, float LearningRate,int epoch);
-
+void PrintNeuralNetwork(NeuralNetwork * neuralnetwork);
+void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int epoch,int PercentualTraining);
 void teste();
 
 #endif

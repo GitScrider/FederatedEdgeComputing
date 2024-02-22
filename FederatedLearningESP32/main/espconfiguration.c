@@ -1,13 +1,9 @@
 #include "espconfiguration.h"
 
-
+static const char* TAG  = "FileSystem";
 
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
-
-    printf("\n\n\n\n%ld\n\n\n\n",event_id);
-
-
     switch (event_id)
     {
     case WIFI_EVENT_STA_START:
@@ -34,39 +30,39 @@ void WIFIConfiguration()
 
     nvs_flash_init();
 
-    printf("Iniciando NVS Flash...\n");
+    printf("Starting NVS Flash...\n");
     esp_err_t nvs_ret = nvs_flash_init();
 
     if (nvs_ret == ESP_OK) {
-        printf("NVS Flash iniciado com sucesso!\n");
+        printf("NVS Flash started!\n");
     } else {
-        printf("Erro ao iniciar NVS Flash. Código de erro: %d\n", nvs_ret);
+        printf("Error to start NVS Flash. Error Code: %d\n", nvs_ret);
     }
 
-    printf("\n\n\n\nTESTE2\n\n\n\n");
+    printf("Wi-Fi/LwIP Init Phase\n");
     // 1 - Wi-Fi/LwIP Init Phase
     esp_netif_init();                    // TCP/IP initiation 					s1.1
     esp_event_loop_create_default();     // event loop 			                s1.2
     esp_netif_create_default_wifi_sta(); // WiFi station 	                    s1.3
     wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&wifi_initiation); // 					                    s1.4
+    printf("Wi-Fi Configuration Phase\n");
     // 2 - Wi-Fi Configuration Phase
     esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
     esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
-    printf("\n\n\n\nTESTE3\n\n\n\n");
     esp_wifi_set_mode(WIFI_MODE_STA);
     wifi_config_t wifi_configuration = {
         .sta = {
             .ssid = WIFI_SSID,
             .password = WIFI_PASSWORD}};
-    printf("\n\n\n\nTESTE4\n\n\n\n");
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);
+    printf("Wi-Fi Start Phase\n");
     // 3 - Wi-Fi Start Phase
     esp_wifi_start();
+    printf("Wi-Fi Connect Phase\n");
     // 4- Wi-Fi Connect Phase
     esp_wifi_connect();
-
-    printf("WIFI was initiated n\n");
+    printf("WI-FI was initiated\n");
 
 }
 
@@ -109,4 +105,33 @@ void GPIOConfiguration(){
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
+}
+
+
+void SPIFFSConfiguration(){
+
+
+ //Monta o sistema de arquivos SPIFFS
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = "/storage",
+        .partition_label = NULL,
+        .max_files = 5,
+        .format_if_mount_failed = true
+    };
+
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+    
+    if(ret != ESP_OK){
+        ESP_LOGE(TAG,"Failed to initialize SPIFFS : (%s)",esp_err_to_name(ret) );
+        return;
+    }
+    
+    size_t total = 0, used = 0;
+    ret = esp_spiffs_info(conf.partition_label,&total,&used); 
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG,"Failed to read partition : (%s)",esp_err_to_name(ret) );
+    }else{
+        ESP_LOGI(TAG,"Partition size - total %d, used %d",total,used);
+    }
+
 }
