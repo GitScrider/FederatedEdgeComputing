@@ -52,7 +52,7 @@ void *start_websocketserver(void *args) {
         return NULL;
     }
 
-    printf("Servidor WebSocket iniciado em 192.168.15.100:%d\n", port);
+    printf("WebSocket Server running in ws://192.168.15.100:%d\n", port);
 
     // Aguarde até que o contexto seja encerrado
     while (1) {

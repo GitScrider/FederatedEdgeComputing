@@ -89,20 +89,30 @@ void handle_get_globalmodel(int client_socket) {
 
 
 void handle_post_globalmodel(int client_socket, const char *request_body) {
+    
+    printf("post chegou ao menos\n");
+    
     // Parseie o corpo JSON usando cJSON
-    cJSON *jsonModel = cJSON_Parse(request_body);
-    char* jsonString = cJSON_Print(jsonModel);
-    //printf("%s\n", jsonString);
 
+    if(request_body!=NULL){
+        printf("TEST: %s\n",request_body);
+    }
+
+     cJSON *jsonModel = cJSON_Parse(request_body);
+    //  char* jsonString = cJSON_Print(jsonModel);
+    //  printf("%s\n", jsonString);
 
     if (jsonModel != NULL) {
 
         FederatedLearning *FederatedLearningInstance = JSONToFederatedLearning(jsonModel);
          
         // Libere a memória alocada
-        cJSON_Delete(jsonModel);
+        
+    }else{
+    printf("CONTEUDO NULO\n");
     }
 
+    cJSON_Delete(jsonModel);
     // Responder à solicitação
     const char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nPOST request to /api/postglobalmodel";
     write(client_socket, response, strlen(response));

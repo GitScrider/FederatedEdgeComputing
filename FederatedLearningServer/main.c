@@ -1,7 +1,8 @@
 #include "lib/httpserver.h"
 #include "lib/websocketserver.h"
 #include "lib/federatedlearning.h"
-#include  "lib/cJSON.h"
+#include "lib/JSONConverter.h"
+#include "lib/cJSON.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -19,7 +20,19 @@ int main() {
     printf("STATUS: %d\n",FDI->globalmodelstatus);
     setFederatedLearningGlobalModel();
     printf("STATUS: %d\n",FDI->globalmodelstatus);
-    PerformanceMetrics(30,0.5);
+    //PerformanceMetrics(30,0.5);
+
+    PrintNeuralNeuralNetwork(FDI->neuralnetwork);
+
+    cJSON *jsondata = federatedLearningToJSON(FDI);
+
+    //Imprimir o JSON resultante
+    char* jsonString = cJSON_Print(jsondata);
+    printf("%s\n", jsonString);
+
+    //Liberar a memória alocada
+    cJSON_Delete(jsondata);
+    free(jsonString);
 
     // Inicializar o servidor HTTP em uma thread
     pthread_t http_thread;

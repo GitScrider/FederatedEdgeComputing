@@ -18,10 +18,12 @@ struct ThreadArgs {
 void handle_request(int client_socket) {
     char buffer[BUFFER_SIZE] = {0};
     read(client_socket, buffer, BUFFER_SIZE - 1);
-    //printf("Request received:\n%s\n", buffer);
+    printf("Request received:\n%s\n", buffer);
 
     //Extracting the bory from the request.
     char *body_start = strstr(buffer, "\r\n\r\n");
+    printf("bory start:\n%s\n", body_start);
+
     const char *request_body = (body_start != NULL) ? body_start + 4 : "";
 
     //Processing the request.
@@ -33,7 +35,6 @@ void handle_request(int client_socket) {
         handle_get_globalmodel(client_socket);
     }
     else if (strstr(buffer, "POST /api/postglobalmodel HTTP/1.1") != NULL){
-    printf("teste 1");
         
         handle_post_globalmodel(client_socket, request_body);
     }

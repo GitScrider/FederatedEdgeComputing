@@ -40,6 +40,7 @@ typedef struct FederatedLearning{
 
 //Methods
 FederatedLearning *getFederatedLearningInstance();
+void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork);
 void setFederatedLearningGlobalModel();
 void PerformanceMetrics(int PercentualEvaluation,int Threshold);
 #endif
