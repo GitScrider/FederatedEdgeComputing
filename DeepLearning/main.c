@@ -126,15 +126,14 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
       else if(i==neuralnetwork -> layers - 1){
         strcpy(newneuron->neurontype, "OUTPUT");
         newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-        //newneuron -> bias = (float)(rand() % 100) / 100.0; 
-        newneuron -> bias = 0.0;
       } 
       else {
         strcpy(newneuron->neurontype, "HIDDEN");
         newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-        //newneuron -> bias = (float)(rand() % 100) / 100.0; 
-        newneuron -> bias = 0.0;
       }
+
+      //newneuron -> bias = (float)(rand() % 100) / 100.0; 
+      newneuron -> bias = 0.0;
 
       newneuron -> nextneuron = NULL;
       newneuron -> previousneuron = newneuron -> nextneuron;
@@ -305,8 +304,6 @@ void printMatriz(float **data, int linhas, int colunas) {
     }
 }
 
-// InputNodes: The number of input neurons.
-// OutputNodes: The number of output neurons.
 void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int Epoch, int PercentualTraining) {
   
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
@@ -648,8 +645,6 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int
     //printf("Epoch %d \n",TrainingCycle+1);
 
   }
-
-
 
 }
 

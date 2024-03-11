@@ -1,9 +1,10 @@
 # CMakeLists.txt inside lib/FederatedLearning
 
 idf_component_register(
-    SRCS "httpclient.c"
+    SRCS "cJSON.c" "JSONConverter.c"
     INCLUDE_DIRS "."
+    REQUIRES federatedlearning
 )
 
 # Adicione esta linha para tornar o diretório um componente IDF
-set(COMPONENT_ADD_INCLUDEDIRS ".")
+# set(COMPONENT_ADD_INCLUDEDIRS ".")

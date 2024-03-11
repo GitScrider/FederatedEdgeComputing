@@ -1,25 +1,15 @@
-# CMakeLists.txt na raiz do seu projeto
+# The following lines of boilerplate have to be in your project's CMakeLists
+# in this exact order for cmake to work correctly
+cmake_minimum_required(VERSION 3.16)
 
-cmake_minimum_required(VERSION 3.16.0)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-
 project(FederatedLearningESP32)
 
-# Defina aqui suas variáveis de ambiente, se necessário
-
-# Adicione os componentes extras (lib/FederatedLearning) ao caminho
-list(APPEND EXTRA_COMPONENT_DIRS "lib/federatedfearning")
-list(APPEND EXTRA_COMPONENT_DIRS "lib/http")
-list(APPEND EXTRA_COMPONENT_DIRS "lib/CJSON")
-
-#spiffs_create_partition_image(spiffs ${CMAKE_SOURCE_DIR}/data FLASH_IN_PROJECT)
+idf_build_set_property(COMPILE_OPTIONS "-Wno-error" APPEND)
 
 
-
-
-# Adicione os outros componentes necessários ao caminho
-#list(APPEND EXTRA_COMPONENT_DIRS "outros/componentes")
-
-# Defina suas configurações do IDF
-
-# Adicione outras configurações específicas do projeto, se necessário
+list(APPEND EXTRA_COMPONENT_DIRS "components/federatedfearning")
+list(APPEND EXTRA_COMPONENT_DIRS "components/http")
+list(APPEND EXTRA_COMPONENT_DIRS "components/CJSON")
+list(APPEND EXTRA_COMPONENT_DIRS "components/websocket")
+list(APPEND EXTRA_COMPONENT_DIRS "components/espwebsocketclient")
