@@ -16,15 +16,14 @@ struct ThreadArgs {
 
 
 void handle_request(int client_socket) {
+    
     char buffer[BUFFER_SIZE] = {0};
     read(client_socket, buffer, BUFFER_SIZE - 1);
     printf("Request received:\n%s\n", buffer);
-
     //Extracting the bory from the request.
     char *body_start = strstr(buffer, "\r\n\r\n");
-    printf("bory start:\n%s\n", body_start);
-
     const char *request_body = (body_start != NULL) ? body_start + 4 : "";
+    //printf("request body:\n%s\n", request_body);
 
     //Processing the request.
     //Redirecting to the endpoints handlers.
@@ -68,7 +67,7 @@ void *start_httpserver(void *args) {
 
     //Setting the serve address
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("192.168.15.100");
+    server_addr.sin_addr.s_addr = inet_addr("192.168.1.5");
 
     server_addr.sin_port = htons((int)threadArgs->port);
 
@@ -84,7 +83,7 @@ void *start_httpserver(void *args) {
         exit(EXIT_FAILURE);
     }
 
-    printf("HTTP Server running in http://192.168.15.100:%d/\n", (int)threadArgs->port);
+    printf("HTTP Server running in http://192.168.1.5:%d/\n", (int)threadArgs->port);
 
     while (1) {
         // Waiting for some conection
@@ -100,49 +99,3 @@ void *start_httpserver(void *args) {
     // Close the server socket
     close(server_socket);
 }
-
-// void *start_httpserver(void *args) {
-//     struct ThreadArgs *threadArgs = (struct ThreadArgs *)args;
-//     int server_socket, client_socket;
-//     struct sockaddr_in server_addr, client_addr;
-//     socklen_t addr_size = sizeof(struct sockaddr_in);
-
-//     //Creating the socket
-//     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-//         perror("Error to run the socket");
-//         exit(EXIT_FAILURE);
-//     }
-
-//     //Setting the serve address
-//     server_addr.sin_family = AF_INET;
-//     server_addr.sin_addr.s_addr = inet_addr("192.168.15.100"); // Substitua XX pelo último número do seu endereço IP
-//     server_addr.sin_port = htons((int)threadArgs->port);
-
-//     //Associating the socket to the server address
-//     if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
-//         perror("Error to associate the socket to the server address");
-//         exit(EXIT_FAILURE);
-//     }
-
-//     //Set the socket in listening mode
-//     if (listen(server_socket, 10) == -1) {
-//         perror("Error to set the socket in listening mode");
-//         exit(EXIT_FAILURE);
-//     }
-
-//     printf("HTTP Server running at http://192.168.15.100:%d/\n", (int)threadArgs->port); // Substitua XX pelo último número do seu endereço IP
-
-//     while (1) {
-//         // Waiting for some conection
-//         if ((client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addr_size)) == -1) {
-//             perror("Erro ao aceitar a conexão");
-//             continue;
-//         }
-
-//         // Handles the customer's request
-//         handle_request(client_socket);
-//     }
-
-//     // Close the server socket
-//     close(server_socket);
-// }
