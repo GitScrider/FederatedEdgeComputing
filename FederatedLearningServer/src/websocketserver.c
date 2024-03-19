@@ -188,7 +188,7 @@ void *start_websocketserver(void *args) {
         return NULL;
     }
 
-    printf("WebSocket Server running in ws://192.168.1.5:%d\n", port);
+    printf("WebSocket Server running in ws://%s:%d\n",IP_ADDRESS, port);
 
     while (1) {
         lws_service(context, 50);

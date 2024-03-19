@@ -67,7 +67,7 @@ void *start_httpserver(void *args) {
 
     //Setting the serve address
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("192.168.1.5");
+    server_addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     server_addr.sin_port = htons((int)threadArgs->port);
 
@@ -83,7 +83,7 @@ void *start_httpserver(void *args) {
         exit(EXIT_FAILURE);
     }
 
-    printf("HTTP Server running in http://192.168.1.5:%d/\n", (int)threadArgs->port);
+    printf("HTTP Server running in http://%s:%d/\n", IP_ADDRESS,(int)threadArgs->port);
 
     while (1) {
         // Waiting for some conection
