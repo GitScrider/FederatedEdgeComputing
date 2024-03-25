@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #include <string.h>
+#include "federatedlearning.h"
 
 
 typedef struct Weight {
@@ -20,14 +21,21 @@ typedef struct Neuron {
 }Neuron;
 
 typedef struct Layer {
+  int activationfunctiontype;
   int neurons;
   struct Neuron * firstneuron, * lastneuron;
   struct Layer * previouslayer, * nextlayer;
 }Layer;
 
+typedef struct LayerConfig{
+  struct LayerConfig *first, *next;
+  int neurons;
+  int activationfunctiontype;  
+}LayerConfig;
+
 typedef struct NeuralNetwork {
+  int lossfunctiontype;
   int layers;
-  int * neuronsInEachLayer;
   struct Layer * firstlayer, * lastlayer;
 }NeuralNetwork;
 
@@ -36,11 +44,13 @@ void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
 
   int i = 0, j = 0, k = 0;
 
+  printf("layers: %d loss function: %d", neuralnetwork->layers, neuralnetwork ->lossfunctiontype);
+
   Layer * currentlayer = neuralnetwork -> firstlayer;
   while (currentlayer != NULL) {
 
     i++;
-    printf("layer %d neurons: %d\n", i, currentlayer -> neurons);
+    printf("layer %d neurons: %d activation function: %d\n", i, currentlayer -> neurons, currentlayer->activationfunctiontype);
 
     Neuron * currentneuron = currentlayer -> firstneuron;
 
@@ -72,112 +82,60 @@ void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
 
 }
 
-void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachLayerVector) {
-
-  // Inicialize a semente do gerador de números aleatórios
-  srand((unsigned) time(NULL));
-
-  neuralnetwork -> neuronsInEachLayer = (int * ) malloc(neuralnetwork -> layers * sizeof(int));
-
-  for (int i = 0; i < neuralnetwork -> layers; i++) {
-    neuralnetwork -> neuronsInEachLayer[i] = neuronsInEachLayerVector[i];
+void printVector(float *data,int size){
+  for(int i =0; i< size;i++){
+    printf("%f ", data[i]);
   }
+  printf("\n");
+}
 
-  neuralnetwork -> firstlayer = NULL;
-  neuralnetwork -> lastlayer = NULL;
-
-  for (int i = 0; i < neuralnetwork -> layers; i++) {
-
-    Layer * newLayer = (Layer * ) malloc(sizeof(Layer));
-
-    if (newLayer == NULL) {
-      fprintf(stderr, "Alocation memory Failure\n");
-      exit(1);
-    }
-
-    newLayer -> neurons = neuralnetwork -> neuronsInEachLayer[i];
-    newLayer -> nextlayer = NULL;
-    newLayer -> previouslayer = newLayer -> nextlayer;
-    newLayer -> firstneuron = NULL;
-    newLayer -> lastneuron = newLayer -> firstneuron;
-
-    if (neuralnetwork -> lastlayer == NULL) {
-      neuralnetwork -> firstlayer = newLayer;
-    } else {
-      neuralnetwork -> lastlayer -> nextlayer = newLayer;
-      newLayer -> previouslayer = neuralnetwork -> lastlayer;
-    }
-
-    neuralnetwork -> lastlayer = newLayer;
-
-    for (int j = 0; j < newLayer -> neurons; j++) {
-
-      Neuron * newneuron = (Neuron * ) malloc(sizeof(Neuron));
-
-      if (newneuron == NULL) {
-        fprintf(stderr, "Alocation memory Failure\n");
-        exit(1);
-      }
-
-      if (i == 0) {
-        strcpy(newneuron->neurontype, "INPUT");
-        newneuron -> weights = 0;
-      }
-      else if(i==neuralnetwork -> layers - 1){
-        strcpy(newneuron->neurontype, "OUTPUT");
-        newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-      } 
-      else {
-        strcpy(newneuron->neurontype, "HIDDEN");
-        newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-      }
-
-      //newneuron -> bias = (float)(rand() % 100) / 100.0; 
-      newneuron -> bias = 0.0;
-
-      newneuron -> nextneuron = NULL;
-      newneuron -> previousneuron = newneuron -> nextneuron;
-      newneuron -> firstweight = NULL;
-      newneuron -> lastweight = newneuron -> firstweight;
-      newneuron -> nextneuron = NULL;
-      newneuron -> previousneuron = newneuron -> nextneuron;
-
-      if (neuralnetwork -> lastlayer -> lastneuron == NULL) {
-
-        neuralnetwork -> lastlayer -> firstneuron = newneuron;
-      } else {
-
-        neuralnetwork -> lastlayer -> lastneuron -> nextneuron = newneuron;
-        newneuron -> previousneuron = neuralnetwork -> lastlayer -> lastneuron;
-      }
-
-      neuralnetwork -> lastlayer -> lastneuron = newneuron;
-
-      for (int k = 0; k < newneuron -> weights; k++) {
-
-        Weight * newweight = (Weight * ) malloc(sizeof(Weight));
-
-        if (newweight == NULL) {
-          fprintf(stderr, "Alocation memory Failure\n");
-          exit(1);
+void printMatriz(float **data, int linhas, int colunas) {
+    for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < colunas; j++) {
+            printf("%f ", data[i][j]);
         }
-        
-        // Gere um número aleatório entre 0 e 99 e converta para float entre 0 e 1
-        //newweight -> weight = (float)(rand() % 100) / 100.0; 
-        newweight->weight = 0.5;
-        newweight -> nextweight = NULL;
-        newweight -> previousweight = newweight -> nextweight;
-
-        if (newneuron -> lastweight == NULL) {
-          neuralnetwork -> lastlayer -> lastneuron -> firstweight = newweight;
-        } else {
-          neuralnetwork -> lastlayer -> lastneuron -> lastweight -> nextweight = newweight;
-          newweight -> previousweight = neuralnetwork -> lastlayer -> lastneuron -> lastweight;
-        }
-        newneuron -> lastweight = newweight;
-      }
+        printf("\n");
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+float Perceptron(float Z){
+    if(Z>0)
+    {
+      return 1;
+    }
+    else{
+     return 0; 
+    }
+}
+
+float PerceptronDerivative(float a){
+    if(a>0){
+      return 1;
+    }
+    else{
+     return 0; 
+    }
+}
+
+float ReLU(float Z){
+  if(Z>0){
+
+    return Z;
+  }else{
+    return 0;
   }
+}
+
+float ReLUDerivative(float a){
+    if(a>0){
+      return 1;
+    }
+    else{
+     return 0; 
+    }
 }
 
 float Sigmoid(float Z) {
@@ -188,8 +146,8 @@ float SigmoidDerivative(float a) {
   return a * (1 - a);
 }
 
-float SoftMax(float Zsum , float Z){
-  return Z/Zsum;
+float SoftMax( float Z,float softmaxsum ){
+  return exp(Z)/softmaxsum;
 }
 
 float SoftMaxDerivative1(float a){
@@ -214,6 +172,8 @@ float CategoricalCrossEntropy(float * label, float * output, int labelsize) {
   }
   return -sum;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void freeWeight(Weight *weight) {
     if(weight!=NULL){
@@ -267,8 +227,6 @@ void freeNeuralNetwork(NeuralNetwork neuralnetwork) {
         currentlayer = nextlayer;
     }
 
-    // Libere a memória da NeuralNetwork
-    free(neuralnetwork.neuronsInEachLayer);
     //free(neuralnetwork);
 }
 
@@ -289,63 +247,399 @@ void freeMatrix(float **matrix, int lines) {
     }
 }
 
-void printVector(float *data,int size){
-  for(int i =0; i< size;i++){
-    printf("%f ", data[i]);
-  }
-  printf("\n");
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float ActivationFunctionCalculaton(NeuralNetwork *neuralnetwork,float Z, int activationfunctiontype){
+
+  Layer *currentlayer;
+  Neuron *currentneuron, *previousneuron;
+  Weight *currentweight;
+
+  float sum = 0;
+  float softmaxsum=0;
+
+//printf("activaiton function type: %d",activationfunctiontype);
+
+switch (activationfunctiontype)
+{
+case 1:
+  return Perceptron(Z);
+case 2:
+  return ReLU(Z);
+case 3:
+  return Sigmoid(Z); 
+case 4:
+
+      currentlayer = neuralnetwork->lastlayer;
+      currentneuron = currentlayer -> firstneuron;
+      previousneuron = currentlayer->previouslayer->firstneuron;
+
+      for (int i = 0; i < currentlayer -> neurons; i++) {
+        currentweight= currentneuron->firstweight;
+        //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+        sum+= currentneuron->bias;
+        for (int j = 0;  j< currentneuron -> weights; j++) {
+          sum += currentweight->weight * previousneuron->activationfunctionvalue;
+          //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
+          currentweight =currentweight->nextweight;
+          previousneuron = previousneuron ->nextneuron;
+        }
+        softmaxsum += exp(sum);
+
+        sum = 0;
+        currentneuron = currentneuron -> nextneuron;
+        previousneuron = currentlayer->previouslayer->firstneuron;
+      }
+      //printf("Exp Z %f SOFTMAXSUM += %f\n",exp(Z),softmaxsum);
+
+      return SoftMax(Z,softmaxsum);
+
+default:
+  break;
 }
 
-void printMatriz(float **data, int linhas, int colunas) {
-    for (int i = 0; i < linhas; i++) {
-        for (int j = 0; j < colunas; j++) {
-            printf("%f ", data[i][j]);
+}
+
+float ActivationFunctionDerivativeCalculation(float a, int activationfunctiontype){
+  
+switch (activationfunctiontype){
+
+case 1:
+  return PerceptronDerivative(a);
+case 2:
+  return ReLUDerivative(a);
+case 3:
+  return SigmoidDerivative(a); 
+  
+  default:
+    break;
+  }
+}
+
+float LossFunctionCalculation(NeuralNetwork * neuralnetwork, float *labelvector){
+  
+  float outputdata[neuralnetwork -> lastlayer->neurons];
+  Neuron *currentneuron = neuralnetwork -> lastlayer -> firstneuron;
+  //getting the neurons output value for loss function
+  for (int i = 0; i < neuralnetwork->lastlayer->neurons; i++) {
+    outputdata[i] = currentneuron -> activationfunctionvalue;
+    currentneuron = currentneuron -> nextneuron;
+    //printf("label %f output %f \n",labelvector[i],outputdata[i]);
+  }
+
+  switch (neuralnetwork->lossfunctiontype)
+  {
+  case MINIMAL_MEAN_SQUARE:
+    break;
+  
+  case CATEGORICAL_CROSS_ENTROPY:
+
+    return  CategoricalCrossEntropy(labelvector, outputdata, neuralnetwork->lastlayer->neurons);
+
+  default:
+    break;
+  }
+}
+
+void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork,int layers,LayerConfig *layersconfig, int lossfunctiontype) {
+
+  LayerConfig *currrentlayerconfig = layersconfig->first;
+  Layer *currrentlayer;
+
+  //Inicialize a semente do gerador de números aleatórios
+  srand((unsigned) time(NULL));
+
+  neuralnetwork->layers = layers;
+  neuralnetwork->lossfunctiontype = lossfunctiontype;
+  neuralnetwork -> firstlayer = NULL;
+  neuralnetwork -> lastlayer = NULL;
+
+  currrentlayerconfig = layersconfig->first;
+ 
+ for (int i = 0; i < neuralnetwork -> layers; i++) {
+
+    Layer * newLayer = (Layer * ) malloc(sizeof(Layer));
+
+    if (newLayer == NULL) {
+      fprintf(stderr, "Alocation memory Failure\n");
+      exit(1);
+    }
+
+    newLayer -> neurons = currrentlayerconfig->neurons;
+    newLayer -> activationfunctiontype = currrentlayerconfig->activationfunctiontype;
+    newLayer -> nextlayer = NULL;
+    newLayer -> previouslayer = newLayer -> nextlayer;
+    newLayer -> firstneuron = NULL;
+    newLayer -> lastneuron = newLayer -> firstneuron;
+
+    if (neuralnetwork -> lastlayer == NULL) {
+      neuralnetwork -> firstlayer = newLayer;
+    } else {
+      neuralnetwork -> lastlayer -> nextlayer = newLayer;
+      newLayer -> previouslayer = neuralnetwork -> lastlayer;
+    }
+
+    neuralnetwork -> lastlayer = newLayer;
+    
+    currrentlayer = newLayer;
+    
+    for (int j = 0; j < newLayer -> neurons; j++) {
+
+      Neuron * newneuron = (Neuron * ) malloc(sizeof(Neuron));
+
+      if (newneuron == NULL) {
+        fprintf(stderr, "Alocation memory Failure\n");
+        exit(1);
+      }
+
+      if (i == 0) {
+        strcpy(newneuron->neurontype, "INPUT");
+        newneuron -> weights = 0;
+      }
+      else if(i==neuralnetwork -> layers - 1){
+        strcpy(newneuron->neurontype, "OUTPUT");
+        newneuron -> weights = currrentlayer->previouslayer->neurons;
+      } 
+      else {
+        strcpy(newneuron->neurontype, "HIDDEN");
+        newneuron -> weights = currrentlayer->previouslayer->neurons;
+      }
+
+      //newneuron -> bias = (float)(rand() % 100) / 100.0; 
+      newneuron -> bias = 0.0;
+
+      newneuron -> nextneuron = NULL;
+      newneuron -> previousneuron = newneuron -> nextneuron;
+      newneuron -> firstweight = NULL;
+      newneuron -> lastweight = newneuron -> firstweight;
+      newneuron -> nextneuron = NULL;
+      newneuron -> previousneuron = newneuron -> nextneuron;
+
+      if (neuralnetwork -> lastlayer -> lastneuron == NULL) {
+
+        neuralnetwork -> lastlayer -> firstneuron = newneuron;
+      } else {
+
+        neuralnetwork -> lastlayer -> lastneuron -> nextneuron = newneuron;
+        newneuron -> previousneuron = neuralnetwork -> lastlayer -> lastneuron;
+      }
+
+      neuralnetwork -> lastlayer -> lastneuron = newneuron;
+
+      for (int k = 0; k < newneuron -> weights; k++) {
+
+        Weight * newweight = (Weight * ) malloc(sizeof(Weight));
+
+        if (newweight == NULL) {
+          fprintf(stderr, "Alocation memory Failure\n");
+          exit(1);
         }
-        printf("\n");
+        
+        // Gere um número aleatório entre 0 e 99 e converta para float entre 0 e 1
+        //newweight -> weight = (float)(rand() % 100) / 100.0; 
+        newweight->weight = 0.5;
+        newweight -> nextweight = NULL;
+        newweight -> previousweight = newweight -> nextweight;
+
+        if (newneuron -> lastweight == NULL) {
+          neuralnetwork -> lastlayer -> lastneuron -> firstweight = newweight;
+        } else {
+          neuralnetwork -> lastlayer -> lastneuron -> lastweight -> nextweight = newweight;
+          newweight -> previousweight = neuralnetwork -> lastlayer -> lastneuron -> lastweight;
+        }
+        newneuron -> lastweight = newweight;
+      }
+    }
+
+    currrentlayerconfig = currrentlayerconfig->next;
+  }
+}
+
+void FeedFoward(NeuralNetwork * neuralnetwork){
+
+  Layer *currentlayer = neuralnetwork->firstlayer->nextlayer;
+  Neuron *currentneuron;
+  Weight *currentweight;
+  
+  //printf("FEEDFOWARD\n");
+
+  for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
+
+    //printf("LAYER %d\n",layer);
+            
+    Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
+    currentneuron = currentlayer -> firstneuron;
+    float Z = 0;
+          
+    //printf("neurons %d\n",currentlayer->neurons);
+
+      for (int i = 0; i < currentlayer -> neurons; i++) {
+        currentweight= currentneuron->firstweight;
+        //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+        Z+= currentneuron->bias;
+        for (int j = 0;  j< currentneuron -> weights; j++) {
+          Z += currentweight->weight * previousneuron->activationfunctionvalue;
+          //printf("W %f IN %f + ",currentweight->weight,previousneuron->activationfunctionvalue);
+          currentweight =currentweight->nextweight;
+          previousneuron = previousneuron ->nextneuron;
+        }
+        currentneuron -> activationfunctionvalue =  ActivationFunctionCalculaton(neuralnetwork,Z,currentlayer->activationfunctiontype);
+        //printf("Z %f ATIVACAO %f\n",Z,currentneuron -> activationfunctionvalue);
+        Z = 0;
+        currentneuron = currentneuron -> nextneuron;
+        previousneuron = currentlayer->previouslayer->firstneuron;
+      }
+    currentlayer = currentlayer -> nextlayer;
     }
 }
 
-void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int Epoch, int PercentualTraining) {
-  
-  float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
-  float label[neuralnetwork->lastlayer->neurons];
-  float outputdata[neuralnetwork->lastlayer->neurons];
-  float Error = 0.0;
-
-  FILE * file = NULL;
-  char line[1024];
-
-  //aux memory for backpropagation
+void BackPropagation(NeuralNetwork *neuralnetwork, float LearningRate, float *label){
+  //printf("BACKPROPAGATION\n");
+      
+  //aux memory 
   int  weightscolumn=0, weightslines=0, deltafunctionsnumber=0;
-  //float ** weights = malloc(weightslines * sizeof(float *)); // matrix control for weights;
-  //float * deltafunctions = malloc(deltafunctionsnumber * sizeof(float)); //vector control for delta functions
   float **weights = NULL;
   float *deltafunctions = NULL;
   // variables to cycle through pointers
   Layer * currentlayer = neuralnetwork -> firstlayer;
   Neuron * currentneuron = currentlayer -> firstneuron;
   Weight * currentweight;
-  
 
+  currentlayer = neuralnetwork -> lastlayer;
+  for (int layer = neuralnetwork -> layers ; layer > 1; layer--) {
 
-    FILE *arquivo = fopen("dados.txt", "w");
+    //verify the last layer
+    if (layer == neuralnetwork -> layers) {
 
-    // Verificando se o arquivo foi aberto com sucesso
-    if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo.");
-        return;
+      //printf("layer %d \n",layer);
+
+      //allocate memory for delta functions
+      deltafunctionsnumber = currentlayer->neurons;
+      deltafunctions = (float * ) malloc(deltafunctionsnumber * sizeof(float));
+      currentneuron = currentlayer -> firstneuron;
+
+      for (int i = 0; i < currentlayer->neurons; i++) {
+        deltafunctions[i] =  currentneuron->activationfunctionvalue - label[i];
+        //printf("label %f output value %f delta %f\n",label[i],currentneuron -> activationfunctionvalue,deltafunctions[i]);
+        currentneuron = currentneuron -> nextneuron;
+      }
+
+      //printf("\n");
+
+      //alocate memory for weights matrix
+      weightslines = currentlayer ->previouslayer -> neurons;
+      weightscolumn = currentlayer->neurons;
+
+      weights = (float ** ) malloc(weightslines * sizeof(float * ));
+
+      for (int i = 0; i < currentlayer -> previouslayer -> neurons; i++) {
+        weights[i] = (float * ) malloc(weightscolumn * sizeof(float));
+      }
+
+      currentneuron = currentlayer -> firstneuron;
+      Neuron* previousneuron; 
+          
+      for (int i = 0; i < currentlayer->neurons; i++){  
+        currentneuron->bias += - deltafunctions[i] * LearningRate;
+        previousneuron = currentlayer->previouslayer->firstneuron;
+        currentweight = currentneuron->firstweight;
+
+        for(int j=0;j<currentlayer->previouslayer->neurons ;j++){
+          //printf("W %f A %f ",currentweight->weight,previousneuron->activationfunctionvalue);
+          currentweight->weight +=  - deltafunctions[i] * previousneuron->activationfunctionvalue * LearningRate; 
+          //printf("D %f Wn %f\n",deltafunctions[i],currentweight->weight);
+          weights[j][i] = currentweight -> weight;
+          previousneuron =previousneuron->nextneuron;
+          currentweight = currentweight->nextweight;
+        }
+        currentneuron = currentneuron->nextneuron;
+      }
+
+    } 
+    else{
+
+      //printf("layer %d \n",layer);
+      float * deltafunctionsaux = (float * ) malloc(deltafunctionsnumber * sizeof(float));
+      memcpy(deltafunctionsaux, deltafunctions, deltafunctionsnumber * sizeof(float));
+      deltafunctions = (float * ) realloc(deltafunctions, currentlayer->neurons * sizeof(int));
+          
+      float deltafunctionaccumulation;
+
+      //calculatting delta
+      currentneuron = currentlayer->firstneuron;
+      for (int i = 0; i < weightslines; i++) {
+        deltafunctionaccumulation = 0;
+        for (int j = 0; j < weightscolumn; j++) {
+          //printf("Dn %d D %f * W %f \n",j, deltafunctionsaux[j], weights[i][j]);
+          deltafunctionaccumulation += deltafunctionsaux[j] * weights[i][j];
+        }
+          
+        deltafunctions[i] = deltafunctionaccumulation *  ActivationFunctionDerivativeCalculation(currentneuron->activationfunctionvalue,currentlayer->activationfunctiontype);
+        //printf("A %f Dn%i %f\n",currentneuron->activationfunctionvalue,i, deltafunctions[i]);            
+        currentneuron = currentneuron->nextneuron;
+      }
+
+      freeMatrix(weights,weightslines);
+
+      weightscolumn = weightslines;
+      weightslines = currentlayer -> previouslayer -> neurons;
+      deltafunctionsnumber = weightslines;
+          
+      //printf("wl %d wc %d\n",weightslines,weightscolumn);
+          
+      weights = (float ** ) malloc(weightslines * sizeof(float * ));          
+      for (int i = 0; i < weightslines; i++) {
+        weights[i] = (float * ) malloc(weightscolumn * sizeof(float));
+      }
+
+      currentneuron = currentlayer->firstneuron;
+      Neuron *previousneuron;
+          
+      for(int i = 0; i< currentlayer->neurons;i++){            
+        currentneuron->bias += - deltafunctions[i]*LearningRate;
+        currentweight = currentneuron->firstweight;
+        previousneuron = currentlayer->previouslayer->firstneuron;
+        for (int j = 0; j < currentneuron->weights; j++){
+          //printf("W %f D %f A %f GW %f",currentweight->weight,deltafunctions[i],previousneuron->activationfunctionvalue,- deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate);
+          currentweight->weight += - deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate;
+          weights[j][i] = currentweight->weight;
+          //printf(" Wn %f \n",currentweight->weight);
+          currentweight = currentweight->nextweight;
+          previousneuron = previousneuron->nextneuron;
+        }
+        //printf("\n");            
+        currentneuron = currentneuron -> nextneuron;
+      }
+      //printMatriz(weights,weightslines,weightscolumn);
+      freeVector(deltafunctionsaux);
     }
+    currentlayer = currentlayer -> previouslayer;
+  }
 
+  freeMatrix(weights,weightslines);
+  freeVector(deltafunctions);
+}
 
+void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int Epoch, int PercentualTraining) {
+  
+  float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
+  float label[neuralnetwork->lastlayer->neurons];
+  float Error = 0.0;
 
-    // Fechando o arquivo
+  FILE * file = NULL;
+  char line[1024];
+  Neuron * currentneuron = NULL;
+  
+  //FILE *arquivo = fopen("dados.txt", "w");
 
-
-
+  // Verificando se o arquivo foi aberto com sucesso
+  // if (arquivo == NULL) {
+  //     printf("Erro ao abrir o arquivo.");
+  //     return;
+  // }
 
   for (int TrainingCycle = 0; TrainingCycle < Epoch; TrainingCycle++) {
 
-    //Abre o arquivo CSV para leitura
     file = fopen("dataset/datasettraining.csv", "r");
 
     if (file == NULL) {
@@ -353,11 +647,10 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int
         return;
     }
 
-
     for(int count =0; count < PercentualTraining; count++){
+      
       fgets(line, sizeof(line), file);
 
-      // Divide a linha em campos usando a função strtok
         char * token = strtok(line, ","); 
 
         for (int i = 0; i < 7; i++){
@@ -366,295 +659,36 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int
               trainingsample[i] = strtof(token, NULL);
             } else {
             // Lidando com o caso em que não há dados suficientes na linha
-            printf("Erro: Não há dados suficientes para preencher InputData na linha.\n");
+            printf("Error: Not enought data in the line.\n");
             break;
             }
         }
 
-      // Aqui você pode processar a linha conforme necessário, usando os dados em record
-
-      // Exemplo: exibindo os dados da linha
-
-      //  trainingsample[0] = 5.1;
-      //  trainingsample[1] = 3.5;
-      //  trainingsample[2] = 1.4;
-      //  trainingsample[3] = 0.2;
-      //  trainingsample[4] = 1;
-      //  trainingsample[5] = 0;
-      //  trainingsample[6] = 0;
-
-      //printf("InputData: [%.1f, %.1f, %.1f, %.1f, %.1f, %.1f, %.1f]\n", trainingsample[0], trainingsample[1], trainingsample[2], trainingsample[3], trainingsample[4], trainingsample[5], trainingsample[6]);
 
       //set the input data on inputdata vector
+
+      //printVector(trainingsample,7);
+
       currentneuron =  neuralnetwork->firstlayer->firstneuron;
       for (int i = 0; i < neuralnetwork->firstlayer->neurons; i++) {
         currentneuron -> activationfunctionvalue = trainingsample[i];
-    
         currentneuron = currentneuron -> nextneuron;
       }
 
       //set the label on label vector
-
       for (int i = neuralnetwork->firstlayer->neurons; i < neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons; i++) {
         label[i - neuralnetwork->firstlayer->neurons] = trainingsample[i];
-
       }
 
-      //printf("FEEDFOWARD\n");
-      //FEEDFOWARD
-      currentlayer = currentlayer->nextlayer;
-      for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
-            
-            Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
-            currentneuron = currentlayer -> firstneuron;
-            float Z = 0;
-          
-          if (layer == neuralnetwork->layers -1){
-            //printf("neurons %d\n",currentlayer->neurons);
+      FeedFoward(neuralnetwork);
+      Error = LossFunctionCalculation(neuralnetwork,label);
+      BackPropagation(neuralnetwork,LearningRate,label);
+
+      //printf("Loss: %f\n",Error);
 
 
-            float softmaxsum=0;
-
-            for (int i = 0; i < currentlayer -> neurons; i++) {
-              currentweight= currentneuron->firstweight;
-             //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-              Z+= currentneuron->bias;
-              for (int j = 0;  j< currentneuron -> weights; j++) {
-                Z += currentweight->weight * previousneuron->activationfunctionvalue;
-                //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
-                currentweight =currentweight->nextweight;
-                previousneuron = previousneuron ->nextneuron;
-
-              }
-              softmaxsum += exp(Z);
-             // printf("Exp Z %f SOFTMAXSUM += %f\n",exp(Z),softmaxsum);
-
-              Z = 0;
-              currentneuron = currentneuron -> nextneuron;
-              previousneuron = currentlayer->previouslayer->firstneuron;
-            }
-
-            previousneuron = currentlayer->previouslayer->firstneuron;
-            currentneuron = currentlayer -> firstneuron;
-            
-            for (int i = 0; i < currentlayer -> neurons; i++) {
-              currentweight= currentneuron->firstweight;
-              //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-              Z+= currentneuron->bias;
-              for (int j = 0;  j< currentneuron -> weights; j++) {
-                Z += currentweight->weight * previousneuron->activationfunctionvalue;
-                //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue);
-                currentweight =currentweight->nextweight;
-                previousneuron = previousneuron ->nextneuron;
-
-              }
-              currentneuron -> activationfunctionvalue = SoftMax(softmaxsum,exp(Z));
-              //printf("Exp Z %f ATIVACAO %f\n",exp(Z), currentneuron -> activationfunctionvalue);
-              Z = 0;
-              currentneuron = currentneuron -> nextneuron;
-              previousneuron = currentlayer->previouslayer->firstneuron;
-            }
-            //printf("\n");
-
-
-          }
-          else{
-
-            for (int i = 0; i < currentlayer -> neurons; i++) {
-              currentweight= currentneuron->firstweight;
-              //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-              Z+= currentneuron->bias;
-              for (int j = 0;  j< currentneuron -> weights; j++) {
-                Z += currentweight->weight * previousneuron->activationfunctionvalue;
-                //printf("W %f IN %f + ",currentweight->weight,previousneuron->activationfunctionvalue);
-                currentweight =currentweight->nextweight;
-                previousneuron = previousneuron ->nextneuron;
-
-              }
-              currentneuron -> activationfunctionvalue = Sigmoid(Z);
-
-              //printf("Z %f ATIVACAO %f\n",Z,currentneuron -> activationfunctionvalue);
-              Z = 0;
-              currentneuron = currentneuron -> nextneuron;
-              previousneuron = currentlayer->previouslayer->firstneuron;
-            }
-          }
-          
-        currentlayer = currentlayer -> nextlayer;
-      }
-      //End FeedFoward
-
-      //LOSS CALCULATION
-      currentneuron = neuralnetwork -> lastlayer -> firstneuron;
-      //getting the neurons output value for loss function
-      for (int i = 0; i < neuralnetwork->lastlayer->neurons; i++) {
-        outputdata[i] = currentneuron -> activationfunctionvalue;
-        currentneuron = currentneuron -> nextneuron;
-        //printf("label %f output %f \n",label[i],outputdata[i]);
-      }
-      Error = CategoricalCrossEntropy(label, outputdata, neuralnetwork->lastlayer->neurons);
-      //printf("Loss: %f\n", Error);
-
-      //END LOSSCALCULATION
-
-      //printf("BACKPROPAGATION\n");
-
-      //BACKPROPAGATION
-      currentlayer = neuralnetwork -> lastlayer;
-      for (int layer = neuralnetwork -> layers ; layer > 1; layer--) {
-
-        //verify the last layer
-        if (layer == neuralnetwork -> layers) {
-
-          //printf("layer %d \n",layer);
-
-          //allocate memory for delta functions
-          deltafunctionsnumber = currentlayer->neurons;
-          deltafunctions = (float * ) malloc(deltafunctionsnumber * sizeof(float));
-          currentneuron = currentlayer -> firstneuron;
-
-
-          //getting the correct delta function associated to the neuron output
-
-          // for (int i = 0; i < currentlayer->neurons; i++) {
-          //   if (label[i] == 1) {
-          //     deltafunctions[i] =  -(1-currentneuron->activationfunctionvalue);
-          //   }
-          //   else{
-          //     deltafunctions[i] = - currentneuron->activationfunctionvalue;
-          //   }
-          //   printf("output value %f delta %f\n",currentneuron -> activationfunctionvalue,deltafunctions[i]);
-
-          //   currentneuron = currentneuron -> nextneuron;
-          // }
-
-
-          for (int i = 0; i < currentlayer->neurons; i++) {
-
-              deltafunctions[i] =  currentneuron->activationfunctionvalue - label[i];
-
-            //printf("label %f output value %f delta %f\n",label[i],currentneuron -> activationfunctionvalue,deltafunctions[i]);
-
-            currentneuron = currentneuron -> nextneuron;
-          }
-
-              //printf("\n");
-
-
-          //alocate memory for weights matrix
-          weightslines = currentlayer ->previouslayer -> neurons;
-          weightscolumn = currentlayer->neurons;
-
-          weights = (float ** ) malloc(weightslines * sizeof(float * ));
-
-          for (int i = 0; i < currentlayer -> previouslayer -> neurons; i++) {
-            weights[i] = (float * ) malloc(weightscolumn * sizeof(float));
-          }
-
-          currentneuron = currentlayer -> firstneuron;
-          Neuron* previousneuron; 
-          
-          for (int i = 0; i < currentlayer->neurons; i++){
-          
-              currentneuron->bias += - deltafunctions[i] * LearningRate;
-
-              previousneuron = currentlayer->previouslayer->firstneuron;
-              currentweight = currentneuron->firstweight;
-
-              for(int j=0;j<currentlayer->previouslayer->neurons ;j++){
-                //printf("W %f A %f ",currentweight->weight,previousneuron->activationfunctionvalue);
-                currentweight->weight +=  - deltafunctions[i] * previousneuron->activationfunctionvalue * LearningRate; 
-                //printf("D %f Wn %f\n",deltafunctions[i],currentweight->weight);
-                weights[j][i] = currentweight -> weight;
-                previousneuron =previousneuron->nextneuron;
-                currentweight = currentweight->nextweight;
-              }
-            
-
-            currentneuron = currentneuron->nextneuron;
-
-          }
-
-        } 
-        else{
-
-          //printf("layer %d \n",layer);
-          float * deltafunctionsaux = (float * ) malloc(deltafunctionsnumber * sizeof(float));
-          memcpy(deltafunctionsaux, deltafunctions, deltafunctionsnumber * sizeof(float));
-          deltafunctions = (float * ) realloc(deltafunctions, currentlayer->neurons * sizeof(int));
-          
-          float deltafunctionaccumulation;
-
-          //calculatting delta
-          currentneuron = currentlayer->firstneuron;
-
-          for (int i = 0; i < weightslines; i++) {
-            deltafunctionaccumulation = 0;
-            for (int j = 0; j < weightscolumn; j++) {
-              //printf("Dn %d D %f * W %f \n",j, deltafunctionsaux[j], weights[i][j]);
-              deltafunctionaccumulation += deltafunctionsaux[j] * weights[i][j];
-            }
-          
-            deltafunctions[i] = deltafunctionaccumulation * SigmoidDerivative(currentneuron->activationfunctionvalue);
-            //printf("A %f Dn%i %f\n",currentneuron->activationfunctionvalue,i, deltafunctions[i]);
-            
-            currentneuron = currentneuron->nextneuron;
-          }
-
-          freeMatrix(weights,weightslines);
-
-          weightscolumn = weightslines;
-          weightslines = currentlayer -> previouslayer -> neurons;
-          deltafunctionsnumber = weightslines;
-          
-          //printf("wl %d wc %d\n",weightslines,weightscolumn);
-          
-          weights = (float ** ) malloc(weightslines * sizeof(float * ));          
-          for (int i = 0; i < weightslines; i++) {
-            weights[i] = (float * ) malloc(weightscolumn * sizeof(float));
-          }
-
-          currentneuron = currentlayer->firstneuron;
-          Neuron *previousneuron;
-          
-          for(int i = 0; i< currentlayer->neurons;i++){
-            
-            currentneuron->bias += - deltafunctions[i]*LearningRate;
-
-            currentweight = currentneuron->firstweight;
-            previousneuron = currentlayer->previouslayer->firstneuron;
-            for (int j = 0; j < currentneuron->weights; j++){
-              //printf("W %f D %f A %f GW %f",currentweight->weight,deltafunctions[i],previousneuron->activationfunctionvalue,- deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate);
-              currentweight->weight += - deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate;
-              weights[j][i] = currentweight->weight;
-              //printf(" Wn %f \n",currentweight->weight);
-              currentweight = currentweight->nextweight;
-              previousneuron = previousneuron->nextneuron;
-            }
-              //printf("\n");
-            
-            currentneuron = currentneuron -> nextneuron;
-
-          }
-
-          //printMatriz(weights,weightslines,weightscolumn);
-
-
-        freeVector(deltafunctionsaux);
-        
-        }
-
-        currentlayer = currentlayer -> previouslayer;
-
-      }
-
-      freeMatrix(weights,weightslines);
-      freeVector(deltafunctions);
-
-    //printf("Loss: %f\n",Error);
     //size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     //printf("Free Heap Size: %u bytes\n", free_heap);
-
 
     }
 
@@ -662,15 +696,16 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int
     fclose(file);
 
     printf("Epoch %d Loss: %f\n",TrainingCycle+1,Error);
-    //printf("Epoch %d \n",TrainingCycle+1);
-    fprintf(arquivo,"%d %f\n", TrainingCycle+1,Error);
+    
+    //fprintf(arquivo,"%d %f\n", TrainingCycle+1,Error);
 
   }
 
-    fclose(arquivo);
-
-
+    //fclose(arquivo);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold){
   
@@ -732,89 +767,90 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+      FeedFoward(neuralnetwork);
 
-      printf("FEEDFOWARD\n");
-      //FEEDFOWARD
-      currentlayer = neuralnetwork->firstlayer->nextlayer;
-      for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
+      // printf("FEEDFOWARD\n");
+      // //FEEDFOWARD
+      // currentlayer = neuralnetwork->firstlayer->nextlayer;
+      // for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
             
-            Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
-            currentneuron = currentlayer -> firstneuron;
-            float Z = 0;
+      //       Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
+      //       currentneuron = currentlayer -> firstneuron;
+      //       float Z = 0;
           
-          if (layer == neuralnetwork->layers -1){
-            //printf("neurons %d\n",currentlayer->neurons);
+      //     if (layer == neuralnetwork->layers -1){
+      //       //printf("neurons %d\n",currentlayer->neurons);
 
 
-            float softmaxsum=0;
+      //       float softmaxsum=0;
 
-            for (int i = 0; i < currentlayer -> neurons; i++) {
-              currentweight= currentneuron->firstweight;
-             //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-              Z+= currentneuron->bias;
-              for (int j = 0;  j< currentneuron -> weights; j++) {
-                Z += currentweight->weight * previousneuron->activationfunctionvalue;
-                //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
-                currentweight =currentweight->nextweight;
-                previousneuron = previousneuron ->nextneuron;
+      //       for (int i = 0; i < currentlayer -> neurons; i++) {
+      //         currentweight= currentneuron->firstweight;
+      //        //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+      //         Z+= currentneuron->bias;
+      //         for (int j = 0;  j< currentneuron -> weights; j++) {
+      //           Z += currentweight->weight * previousneuron->activationfunctionvalue;
+      //           //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
+      //           currentweight =currentweight->nextweight;
+      //           previousneuron = previousneuron ->nextneuron;
 
-              }
-              softmaxsum += exp(Z);
-             // printf("Exp Z %f SOFTMAXSUM += %f\n",exp(Z),softmaxsum);
+      //         }
+      //         softmaxsum += exp(Z);
+      //        // printf("Exp Z %f SOFTMAXSUM += %f\n",exp(Z),softmaxsum);
 
-              Z = 0;
-              currentneuron = currentneuron -> nextneuron;
-              previousneuron = currentlayer->previouslayer->firstneuron;
-            }
+      //         Z = 0;
+      //         currentneuron = currentneuron -> nextneuron;
+      //         previousneuron = currentlayer->previouslayer->firstneuron;
+      //       }
 
-            previousneuron = currentlayer->previouslayer->firstneuron;
-            currentneuron = currentlayer -> firstneuron;
+      //       previousneuron = currentlayer->previouslayer->firstneuron;
+      //       currentneuron = currentlayer -> firstneuron;
             
-            for (int i = 0; i < currentlayer -> neurons; i++) {
-              currentweight= currentneuron->firstweight;
-              //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-              Z+= currentneuron->bias;
-              for (int j = 0;  j< currentneuron -> weights; j++) {
-                Z += currentweight->weight * previousneuron->activationfunctionvalue;
-                //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue);
-                currentweight =currentweight->nextweight;
-                previousneuron = previousneuron ->nextneuron;
+      //       for (int i = 0; i < currentlayer -> neurons; i++) {
+      //         currentweight= currentneuron->firstweight;
+      //         //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+      //         Z+= currentneuron->bias;
+      //         for (int j = 0;  j< currentneuron -> weights; j++) {
+      //           Z += currentweight->weight * previousneuron->activationfunctionvalue;
+      //           //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue);
+      //           currentweight =currentweight->nextweight;
+      //           previousneuron = previousneuron ->nextneuron;
 
-              }
-              currentneuron -> activationfunctionvalue = SoftMax(softmaxsum,exp(Z));
-              //printf("Exp Z %f ATIVACAO %f\n",exp(Z), currentneuron -> activationfunctionvalue);
-              Z = 0;
-              currentneuron = currentneuron -> nextneuron;
-              previousneuron = currentlayer->previouslayer->firstneuron;
-            }
-            printf("\n");
+      //         }
+      //         currentneuron -> activationfunctionvalue = SoftMax(softmaxsum,exp(Z));
+      //         //printf("Exp Z %f ATIVACAO %f\n",exp(Z), currentneuron -> activationfunctionvalue);
+      //         Z = 0;
+      //         currentneuron = currentneuron -> nextneuron;
+      //         previousneuron = currentlayer->previouslayer->firstneuron;
+      //       }
+      //       printf("\n");
 
 
-          }
-          else{
+      //     }
+      //     else{
 
-            for (int i = 0; i < currentlayer -> neurons; i++) {
-              currentweight= currentneuron->firstweight;
-              //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-              Z+= currentneuron->bias;
-              for (int j = 0;  j< currentneuron -> weights; j++) {
-                Z += currentweight->weight * previousneuron->activationfunctionvalue;
-                //printf("W %f IN %f + ",currentweight->weight,previousneuron->activationfunctionvalue);
-                currentweight =currentweight->nextweight;
-                previousneuron = previousneuron ->nextneuron;
+      //       for (int i = 0; i < currentlayer -> neurons; i++) {
+      //         currentweight= currentneuron->firstweight;
+      //         //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+      //         Z+= currentneuron->bias;
+      //         for (int j = 0;  j< currentneuron -> weights; j++) {
+      //           Z += currentweight->weight * previousneuron->activationfunctionvalue;
+      //           //printf("W %f IN %f + ",currentweight->weight,previousneuron->activationfunctionvalue);
+      //           currentweight =currentweight->nextweight;
+      //           previousneuron = previousneuron ->nextneuron;
 
-              }
-              currentneuron -> activationfunctionvalue = Sigmoid(Z);
+      //         }
+      //         currentneuron -> activationfunctionvalue = Sigmoid(Z);
 
-              //printf("Z %f ATIVACAO %f\n",Z,currentneuron -> activationfunctionvalue);
-              Z = 0;
-              currentneuron = currentneuron -> nextneuron;
-              previousneuron = currentlayer->previouslayer->firstneuron;
-            }
-          }
+      //         //printf("Z %f ATIVACAO %f\n",Z,currentneuron -> activationfunctionvalue);
+      //         Z = 0;
+      //         currentneuron = currentneuron -> nextneuron;
+      //         previousneuron = currentlayer->previouslayer->firstneuron;
+      //       }
+      //     }
           
-        currentlayer = currentlayer -> nextlayer;
-      }
+      //   currentlayer = currentlayer -> nextlayer;
+      // }
         
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -879,17 +915,41 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
 int main() {
 
   NeuralNetwork neuralnetwork;
-  neuralnetwork.layers = 4;
-  int vector[] = {4,10,24,3};
+  
+  //LayerConfig *layerconfig0, *layerconfig1, *layerconfig2, *layerconfig3;
 
-  InitializeNeuralNetWork( & neuralnetwork, vector);
-  //PrintNeuralNeuralNetWork( & neuralnetwork);
-  NeuralNetworkTraining( & neuralnetwork, 0.1,120,120);
+  LayerConfig *layerconfig0 = malloc(sizeof(LayerConfig));
+  LayerConfig *layerconfig1 = malloc(sizeof(LayerConfig));
+  LayerConfig *layerconfig2 = malloc(sizeof(LayerConfig));
+  LayerConfig *layerconfig3 = malloc(sizeof(LayerConfig));
+
+  layerconfig0->first =layerconfig0;
+  layerconfig0->neurons= 4;
+  layerconfig0->activationfunctiontype = 0;
+  layerconfig0->next = layerconfig1;
+
+  layerconfig1->neurons= 3;
+  layerconfig1->activationfunctiontype = RELU;
+  layerconfig1->next = layerconfig2;
+
+  layerconfig2->neurons= 3;
+  layerconfig2->activationfunctiontype = RELU;
+  layerconfig2->next = layerconfig3;
+
+  layerconfig3->neurons= 3;
+  layerconfig3->activationfunctiontype = SOFTMAX;
+  layerconfig3->next = NULL;
+
+
+  InitializeNeuralNetWork(&neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
+  PrintNeuralNeuralNetWork(&neuralnetwork);
+  NeuralNetworkTraining(&neuralnetwork, 0.001,40,120);
+
   //PrintNeuralNeuralNetWork( & neuralnetwork);
 
   PerformanceMetrics(&neuralnetwork,30,0.5);
 
-  freeNeuralNetwork( neuralnetwork);
+  //freeNeuralNetwork( neuralnetwork);
 
 }
 
