@@ -15,6 +15,7 @@
 #define CATEGORICAL_CROSS_ENTROPY 2
 
 //regularization
+#define NONE_REGULARIZATION 0
 #define L2 2
 #define L1 1
 

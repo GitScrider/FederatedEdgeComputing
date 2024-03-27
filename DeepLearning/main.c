@@ -316,7 +316,87 @@ case 3:
   }
 }
 
-float LossFunctionCalculation(NeuralNetwork * neuralnetwork, float *labelvector){
+float StochasticGradientDescentCalculation( float weight,float output ,float deltafunction,int regularization,float alpha,float lambda){
+
+  switch (regularization){
+    
+    case 0:
+      //printf("REGULATION 0 ");
+      return -alpha * deltafunction * output;
+    
+    case 1:
+      return 0;
+
+    case 2:
+      //printf("REGULATION 2 ");
+
+      return -alpha * (deltafunction * output + 2*lambda*weight);
+      
+    default:
+      break;
+  }
+}
+
+float RidgeRegressionCalculation(NeuralNetwork *neuralnetwork,float lambda){
+
+  float sum=0;
+
+  Layer *currentlayer;
+  Neuron *currentneuron;
+  Weight *currentweight;
+
+  currentlayer = neuralnetwork->firstlayer; 
+  while(currentlayer != NULL){
+    currentneuron = currentlayer->firstneuron;
+
+    while (currentneuron!=NULL){
+      currentweight = currentneuron->firstweight;
+
+      while (currentweight!=NULL){
+        sum += currentweight->weight*currentweight->weight;
+        currentweight = currentweight->nextweight;
+      }
+      currentneuron= currentneuron->nextneuron;
+    }
+      currentlayer = currentlayer->nextlayer;
+  }
+  return sum*lambda;
+}
+
+float LassoRegressionCalculation(NeuralNetwork *neuralnetwork,float lambda){
+  
+  float sum=0;
+
+  Layer *currentlayer;
+  Neuron *currentneuron;
+  Weight *currentweight;
+
+  currentlayer = neuralnetwork->firstlayer; 
+  while(currentlayer != NULL){
+    currentneuron = currentlayer->firstneuron;
+
+    while (currentneuron!=NULL){
+      currentweight = currentneuron->firstweight;
+
+      while (currentweight!=NULL){
+
+        if (currentweight->weight>=0){
+          sum += currentweight->weight;
+        }
+        else{
+          sum += -currentweight->weight;
+        }
+
+        currentweight = currentweight->nextweight;
+      }
+      currentneuron= currentneuron->nextneuron;
+    }
+      currentlayer = currentlayer->nextlayer;
+  }
+  return sum*lambda;
+}
+
+float LossFunctionCalculation(NeuralNetwork * neuralnetwork, float *labelvector, int regularization,float lambda){  
   
   float outputdata[neuralnetwork -> lastlayer->neurons];
   Neuron *currentneuron = neuralnetwork -> lastlayer -> firstneuron;
@@ -327,14 +407,23 @@ float LossFunctionCalculation(NeuralNetwork * neuralnetwork, float *labelvector)
     //printf("label %f output %f \n",labelvector[i],outputdata[i]);
   }
 
-  switch (neuralnetwork->lossfunctiontype)
-  {
+  switch (neuralnetwork->lossfunctiontype){
   case MINIMAL_MEAN_SQUARE:
     break;
   
   case CATEGORICAL_CROSS_ENTROPY:
 
-    return  CategoricalCrossEntropy(labelvector, outputdata, neuralnetwork->lastlayer->neurons);
+    switch (regularization){
+      
+      case 0:
+        return  CategoricalCrossEntropy(labelvector, outputdata, neuralnetwork->lastlayer->neurons) ;
+      case 1:
+        return  CategoricalCrossEntropy(labelvector, outputdata, neuralnetwork->lastlayer->neurons) + LassoRegressionCalculation(neuralnetwork,lambda);
+      case 2:
+        return  CategoricalCrossEntropy(labelvector, outputdata, neuralnetwork->lastlayer->neurons) + RidgeRegressionCalculation(neuralnetwork,lambda);
+      default:
+        break;
+    }
 
   default:
     break;
@@ -436,8 +525,8 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork,int layers,LayerConfi
         }
         
         // Gere um número aleatório entre 0 e 99 e converta para float entre 0 e 1
-        //newweight -> weight = (float)(rand() % 100) / 100.0; 
-        newweight->weight = 0.5;
+        newweight -> weight = (float)(rand() % 100) / 100.0; 
+        //newweight->weight = 0.5;
         newweight -> nextweight = NULL;
         newweight -> previousweight = newweight -> nextweight;
 
@@ -493,7 +582,7 @@ void FeedFoward(NeuralNetwork * neuralnetwork){
     }
 }
 
-void BackPropagation(NeuralNetwork *neuralnetwork, float LearningRate, float *label){
+void BackPropagation(NeuralNetwork *neuralnetwork, float *label, float alpha, int regularization, float lambda){
   //printf("BACKPROPAGATION\n");
       
   //aux memory 
@@ -540,13 +629,14 @@ void BackPropagation(NeuralNetwork *neuralnetwork, float LearningRate, float *la
       Neuron* previousneuron; 
           
       for (int i = 0; i < currentlayer->neurons; i++){  
-        currentneuron->bias += - deltafunctions[i] * LearningRate;
+        currentneuron->bias += - deltafunctions[i] * alpha;
         previousneuron = currentlayer->previouslayer->firstneuron;
         currentweight = currentneuron->firstweight;
 
         for(int j=0;j<currentlayer->previouslayer->neurons ;j++){
           //printf("W %f A %f ",currentweight->weight,previousneuron->activationfunctionvalue);
-          currentweight->weight +=  - deltafunctions[i] * previousneuron->activationfunctionvalue * LearningRate; 
+          //currentweight->weight +=  - deltafunctions[i] * previousneuron->activationfunctionvalue * alpha; 
+          currentweight->weight += StochasticGradientDescentCalculation(currentweight->weight,previousneuron->activationfunctionvalue,deltafunctions[i],regularization,alpha,lambda);
           //printf("D %f Wn %f\n",deltafunctions[i],currentweight->weight);
           weights[j][i] = currentweight -> weight;
           previousneuron =previousneuron->nextneuron;
@@ -596,12 +686,13 @@ void BackPropagation(NeuralNetwork *neuralnetwork, float LearningRate, float *la
       Neuron *previousneuron;
           
       for(int i = 0; i< currentlayer->neurons;i++){            
-        currentneuron->bias += - deltafunctions[i]*LearningRate;
+        currentneuron->bias += - deltafunctions[i]*alpha;
         currentweight = currentneuron->firstweight;
         previousneuron = currentlayer->previouslayer->firstneuron;
         for (int j = 0; j < currentneuron->weights; j++){
           //printf("W %f D %f A %f GW %f",currentweight->weight,deltafunctions[i],previousneuron->activationfunctionvalue,- deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate);
-          currentweight->weight += - deltafunctions[i]*previousneuron->activationfunctionvalue*LearningRate;
+          currentweight->weight +=  StochasticGradientDescentCalculation(currentweight->weight,previousneuron->activationfunctionvalue,deltafunctions[i],regularization,alpha,lambda); 
+          //currentweight->weight +=  - deltafunctions[i] * previousneuron->activationfunctionvalue * alpha; 
           weights[j][i] = currentweight->weight;
           //printf(" Wn %f \n",currentweight->weight);
           currentweight = currentweight->nextweight;
@@ -620,7 +711,7 @@ void BackPropagation(NeuralNetwork *neuralnetwork, float LearningRate, float *la
   freeVector(deltafunctions);
 }
 
-void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int Epoch, int PercentualTraining) {
+void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float alpha,int Epoch, int PercentualTraining,int Regularization, float Lambda) {
   
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
@@ -681,8 +772,8 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int
       }
 
       FeedFoward(neuralnetwork);
-      Error = LossFunctionCalculation(neuralnetwork,label);
-      BackPropagation(neuralnetwork,LearningRate,label);
+      Error = LossFunctionCalculation(neuralnetwork,label,Regularization,Lambda);
+      BackPropagation(neuralnetwork,label,alpha,Regularization,Lambda);
 
       //printf("Loss: %f\n",Error);
 
@@ -706,14 +797,12 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float LearningRate,int
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold){
   
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
   float outputdata[neuralnetwork->lastlayer->neurons];
   float Precision=0, Recall=0, Accuracy=0,Specificity=0,F1Score=0;
-
 
   int total=0,truepositive=0,falsepositive=0,truenegative=0,falsenegative=0;
 
@@ -765,95 +854,7 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
           
         }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
       FeedFoward(neuralnetwork);
-
-      // printf("FEEDFOWARD\n");
-      // //FEEDFOWARD
-      // currentlayer = neuralnetwork->firstlayer->nextlayer;
-      // for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
-            
-      //       Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
-      //       currentneuron = currentlayer -> firstneuron;
-      //       float Z = 0;
-          
-      //     if (layer == neuralnetwork->layers -1){
-      //       //printf("neurons %d\n",currentlayer->neurons);
-
-
-      //       float softmaxsum=0;
-
-      //       for (int i = 0; i < currentlayer -> neurons; i++) {
-      //         currentweight= currentneuron->firstweight;
-      //        //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-      //         Z+= currentneuron->bias;
-      //         for (int j = 0;  j< currentneuron -> weights; j++) {
-      //           Z += currentweight->weight * previousneuron->activationfunctionvalue;
-      //           //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
-      //           currentweight =currentweight->nextweight;
-      //           previousneuron = previousneuron ->nextneuron;
-
-      //         }
-      //         softmaxsum += exp(Z);
-      //        // printf("Exp Z %f SOFTMAXSUM += %f\n",exp(Z),softmaxsum);
-
-      //         Z = 0;
-      //         currentneuron = currentneuron -> nextneuron;
-      //         previousneuron = currentlayer->previouslayer->firstneuron;
-      //       }
-
-      //       previousneuron = currentlayer->previouslayer->firstneuron;
-      //       currentneuron = currentlayer -> firstneuron;
-            
-      //       for (int i = 0; i < currentlayer -> neurons; i++) {
-      //         currentweight= currentneuron->firstweight;
-      //         //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-      //         Z+= currentneuron->bias;
-      //         for (int j = 0;  j< currentneuron -> weights; j++) {
-      //           Z += currentweight->weight * previousneuron->activationfunctionvalue;
-      //           //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue);
-      //           currentweight =currentweight->nextweight;
-      //           previousneuron = previousneuron ->nextneuron;
-
-      //         }
-      //         currentneuron -> activationfunctionvalue = SoftMax(softmaxsum,exp(Z));
-      //         //printf("Exp Z %f ATIVACAO %f\n",exp(Z), currentneuron -> activationfunctionvalue);
-      //         Z = 0;
-      //         currentneuron = currentneuron -> nextneuron;
-      //         previousneuron = currentlayer->previouslayer->firstneuron;
-      //       }
-      //       printf("\n");
-
-
-      //     }
-      //     else{
-
-      //       for (int i = 0; i < currentlayer -> neurons; i++) {
-      //         currentweight= currentneuron->firstweight;
-      //         //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
-      //         Z+= currentneuron->bias;
-      //         for (int j = 0;  j< currentneuron -> weights; j++) {
-      //           Z += currentweight->weight * previousneuron->activationfunctionvalue;
-      //           //printf("W %f IN %f + ",currentweight->weight,previousneuron->activationfunctionvalue);
-      //           currentweight =currentweight->nextweight;
-      //           previousneuron = previousneuron ->nextneuron;
-
-      //         }
-      //         currentneuron -> activationfunctionvalue = Sigmoid(Z);
-
-      //         //printf("Z %f ATIVACAO %f\n",Z,currentneuron -> activationfunctionvalue);
-      //         Z = 0;
-      //         currentneuron = currentneuron -> nextneuron;
-      //         previousneuron = currentlayer->previouslayer->firstneuron;
-      //       }
-      //     }
-          
-      //   currentlayer = currentlayer -> nextlayer;
-      // }
-        
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
       currentneuron = neuralnetwork->lastlayer->firstneuron;
 
@@ -940,10 +941,15 @@ int main() {
   layerconfig3->activationfunctiontype = SOFTMAX;
   layerconfig3->next = NULL;
 
-
+  
   InitializeNeuralNetWork(&neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
+
+  //printf("%f\n",LassoRegressionCalculation(&neuralnetwork,0.01));
+  //printf("%f\n",RidgeRegressionCalculation(&neuralnetwork,0.01));
+
+
   PrintNeuralNeuralNetWork(&neuralnetwork);
-  NeuralNetworkTraining(&neuralnetwork, 0.001,40,120);
+  NeuralNetworkTraining(&neuralnetwork, 0.001,80,120,L2,0.01 );
 
   //PrintNeuralNeuralNetWork( & neuralnetwork);
 
