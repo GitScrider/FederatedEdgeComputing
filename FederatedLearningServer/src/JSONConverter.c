@@ -1,6 +1,6 @@
 #include "../lib/JSONConverter.h"
 #include "../lib/federatedlearning.h"
-
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -10,10 +10,16 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
 
     cJSON_AddItemToObject(root, "globalmodelstatus", cJSON_CreateNumber(federatedLearning->globalmodelstatus));
     cJSON_AddItemToObject(root, "trainingscounter", cJSON_CreateNumber(federatedLearning->trainingscounter));
-
+    
     cJSON* jsonNeuralNetwork = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "neuralnetwork", jsonNeuralNetwork);
 
+    cJSON_AddItemToObject(jsonNeuralNetwork, "epoch", cJSON_CreateNumber(federatedLearning->neuralnetwork->epoch));
+    cJSON_AddItemToObject(jsonNeuralNetwork, "alpha", cJSON_CreateNumber(federatedLearning->neuralnetwork->alpha));
+    cJSON_AddItemToObject(jsonNeuralNetwork, "regularization", cJSON_CreateNumber(federatedLearning->neuralnetwork->regularization));
+    cJSON_AddItemToObject(jsonNeuralNetwork, "lambda", cJSON_CreateNumber(federatedLearning->neuralnetwork->lambda));
+    cJSON_AddItemToObject(jsonNeuralNetwork, "percentualtraining", cJSON_CreateNumber(federatedLearning->neuralnetwork->percentualtraining));
+    cJSON_AddItemToObject(jsonNeuralNetwork, "lossfunctiontype", cJSON_CreateNumber(federatedLearning->neuralnetwork->lossfunctiontype));
     cJSON_AddItemToObject(jsonNeuralNetwork, "layers", cJSON_CreateNumber(federatedLearning->neuralnetwork->layers));
 
     cJSON* layersArray = cJSON_CreateArray();
@@ -21,6 +27,7 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
 
     while (currentLayer != NULL) {
         cJSON* layerObject = cJSON_CreateObject();
+        cJSON_AddItemToObject(layerObject, "activationfunctiontype", cJSON_CreateNumber(currentLayer->activationfunctiontype));
         cJSON_AddItemToObject(layerObject, "neurons", cJSON_CreateNumber(currentLayer->neurons));
 
         cJSON* neuronsArray = cJSON_CreateArray();
@@ -30,12 +37,6 @@ cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
             cJSON* neuronObject = cJSON_CreateObject();
             cJSON_AddItemToObject(neuronObject, "neurontype", cJSON_CreateString(currentNeuron->neurontype));
             cJSON_AddItemToObject(neuronObject, "weights", cJSON_CreateNumber(currentNeuron->weights));
-            
-            // cJSON* biasArray = cJSON_CreateArray();
-            // cJSON_AddItemToArray(biasArray, cJSON_CreateNumber(currentNeuron->bias));
-            // cJSON_AddItemToObject(neuronObject, "bias", biasArray);
-            
-
             cJSON_AddItemToObject(neuronObject, "bias", cJSON_CreateNumber(currentNeuron->bias));
 
             // Adiciona um array de pesos para cada neurônio
@@ -103,10 +104,48 @@ FederatedLearning* JSONToFederatedLearning(const cJSON* json) {
         federatedLearning->neuralnetwork = (NeuralNetwork*)malloc(sizeof(NeuralNetwork));
         printf("NeuralNetwork Created\n");
 
+        cJSON* epochItem = cJSON_GetObjectItem(neuralNetworkItem, "epoch");
+        if (cJSON_IsNumber(epochItem)) {
+            federatedLearning->neuralnetwork->epoch = epochItem->valueint;
+            printf("epoch %d\n", federatedLearning->neuralnetwork->epoch);
+        }
+
+        cJSON* alphaItem = cJSON_GetObjectItem(neuralNetworkItem, "alpha");
+        if (cJSON_IsNumber(alphaItem)) {
+            federatedLearning->neuralnetwork->alpha = alphaItem->valuedouble;
+            printf("alpha %f\n", federatedLearning->neuralnetwork->alpha);
+        }
+
+        cJSON* regularizationItem = cJSON_GetObjectItem(neuralNetworkItem, "regularization");
+        if (cJSON_IsNumber(regularizationItem)) {
+            federatedLearning->neuralnetwork->regularization = regularizationItem->valueint;
+            printf("regularization %d\n", federatedLearning->neuralnetwork->regularization);
+        }
+
+        cJSON* lambdaItem = cJSON_GetObjectItem(neuralNetworkItem, "lambda");
+        if (cJSON_IsNumber(lambdaItem)) {
+            federatedLearning->neuralnetwork->lambda = lambdaItem->valuedouble;
+            printf("lambda %f\n", federatedLearning->neuralnetwork->lambda);
+        }
+
+        cJSON* percentualtrainingItem = cJSON_GetObjectItem(neuralNetworkItem, "percentualtraining");
+        if (cJSON_IsNumber(percentualtrainingItem)) {
+            federatedLearning->neuralnetwork->percentualtraining = percentualtrainingItem->valueint;
+            printf("percentualtraining %d\n", federatedLearning->neuralnetwork->percentualtraining);
+
+        }
+
+        cJSON* lossfunctiontypeItem = cJSON_GetObjectItem(neuralNetworkItem, "lossfunctiontype");
+        if (cJSON_IsNumber(lossfunctiontypeItem)) {
+            federatedLearning->neuralnetwork->lossfunctiontype = lossfunctiontypeItem->valueint;
+            printf("layers %d\n", federatedLearning->neuralnetwork->layers);
+
+        }
+
         cJSON* layersItem = cJSON_GetObjectItem(neuralNetworkItem, "layers");
         if (cJSON_IsNumber(layersItem)) {
             federatedLearning->neuralnetwork->layers = layersItem->valueint;
-                printf("layers %d\n", federatedLearning->neuralnetwork->layers);
+            printf("layers %d\n", federatedLearning->neuralnetwork->layers);
 
             cJSON* layersArrayItem = cJSON_GetObjectItem(neuralNetworkItem, "layersArray");
             if (cJSON_IsArray(layersArrayItem)) {

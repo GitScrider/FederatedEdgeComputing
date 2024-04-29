@@ -8,6 +8,8 @@
 
 static pthread_mutex_t singletonMutex = PTHREAD_MUTEX_INITIALIZER;
 
+//////////////////////////////////////////////////PRINT//////////////////////////////////////////////////
+
 void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork) {
 
   int i = 0, j = 0, k = 0;
@@ -48,21 +50,141 @@ void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork) {
 
 }
 
-void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachLayerVector) {
+//////////////////////////////////////////////////DEEPLEARNINGMATH//////////////////////////////////////////////////
 
-  // Inicialize a semente do gerador de números aleatórios
-  srand((unsigned) time(NULL));
+float Perceptron(float Z){
+    if(Z>0)
+    {
+      return 1;
+    }
+    else{
+     return 0; 
+    }
+}
 
-  neuralnetwork -> neuronsInEachLayer = (int * ) malloc(neuralnetwork -> layers * sizeof(int));
+float ReLU(float Z){
+  if(Z>0){
 
-  for (int i = 0; i < neuralnetwork -> layers; i++) {
-    neuralnetwork -> neuronsInEachLayer[i] = neuronsInEachLayerVector[i];
+    return Z;
+  }else{
+    return 0;
+  }
+}
+
+float Sigmoid(float Z) {
+  return 1.0 / (1.0 + exp(-Z));
+}
+
+float SoftMax( float Z,float softmaxsum ){
+  return exp(Z)/softmaxsum;
+}
+
+//////////////////////////////////////////////////DEEPLEARNINGNEURALNETWORK//////////////////////////////////////////////////
+
+float ActivationFunctionCalculaton(NeuralNetwork *neuralnetwork,float Z, int activationfunctiontype){
+
+  Layer *currentlayer;
+  Neuron *currentneuron, *previousneuron;
+  Weight *currentweight;
+
+  float sum = 0;
+  float softmaxsum=0;
+
+//printf("activaiton function type: %d",activationfunctiontype);
+
+switch (activationfunctiontype){
+  case 1:
+    return Perceptron(Z);
+  case 2:
+    return ReLU(Z);
+  case 3:
+    return Sigmoid(Z); 
+  case 4:
+
+        currentlayer = neuralnetwork->lastlayer;
+        currentneuron = currentlayer -> firstneuron;
+        previousneuron = currentlayer->previouslayer->firstneuron;
+
+        for (int i = 0; i < currentlayer -> neurons; i++) {
+          currentweight= currentneuron->firstweight;
+          //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+          sum+= currentneuron->bias;
+          for (int j = 0;  j< currentneuron -> weights; j++) {
+            sum += currentweight->weight * previousneuron->activationfunctionvalue;
+            //printf("W %f IN %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
+            currentweight =currentweight->nextweight;
+            previousneuron = previousneuron ->nextneuron;
+          }
+          softmaxsum += exp(sum);
+
+          sum = 0;
+          currentneuron = currentneuron -> nextneuron;
+          previousneuron = currentlayer->previouslayer->firstneuron;
+        }
+        //printf("Exp Z %f SOFTMAXSUM += %f\n",exp(Z),softmaxsum);
+
+        return SoftMax(Z,softmaxsum);
+
+  default:
+    return 0;
   }
 
+}
+
+void FeedFoward(NeuralNetwork * neuralnetwork){
+
+  Layer *currentlayer = neuralnetwork->firstlayer->nextlayer;
+  Neuron *currentneuron;
+  Weight *currentweight;
+  
+  //printf("FEEDFOWARD\n");
+
+  for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
+
+    //printf("LAYER %d\n",layer);
+            
+    Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
+    currentneuron = currentlayer -> firstneuron;
+    float Z = 0;
+          
+    //printf("neurons %d\n",currentlayer->neurons);
+
+      for (int i = 0; i < currentlayer -> neurons; i++) {
+        currentweight= currentneuron->firstweight;
+        //printf("wieghts %d \nB %f - ",currentneuron->weights,currentneuron->bias);
+        Z+= currentneuron->bias;
+        for (int j = 0;  j< currentneuron -> weights; j++) {
+          Z += currentweight->weight * previousneuron->activationfunctionvalue;
+          //printf("W %f IN %f + ",currentweight->weight,previousneuron->activationfunctionvalue);
+          currentweight =currentweight->nextweight;
+          previousneuron = previousneuron ->nextneuron;
+        }
+        currentneuron -> activationfunctionvalue =  ActivationFunctionCalculaton(neuralnetwork,Z,currentlayer->activationfunctiontype);
+        //printf("Z %f ATIVACAO %f\n",Z,currentneuron -> activationfunctionvalue);
+        Z = 0;
+        currentneuron = currentneuron -> nextneuron;
+        previousneuron = currentlayer->previouslayer->firstneuron;
+      }
+    currentlayer = currentlayer -> nextlayer;
+    }
+}
+
+void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork,int layers,LayerConfig *layersconfig, int lossfunctiontype) {
+
+  LayerConfig *currrentlayerconfig = layersconfig->first;
+  Layer *currrentlayer;
+
+  //Inicialize a semente do gerador de números aleatórios
+  srand((unsigned) time(NULL));
+
+  neuralnetwork->layers = layers;
+  neuralnetwork->lossfunctiontype = lossfunctiontype;
   neuralnetwork -> firstlayer = NULL;
   neuralnetwork -> lastlayer = NULL;
 
-  for (int i = 0; i < neuralnetwork -> layers; i++) {
+  currrentlayerconfig = layersconfig->first;
+ 
+ for (int i = 0; i < neuralnetwork -> layers; i++) {
 
     Layer * newLayer = (Layer * ) malloc(sizeof(Layer));
 
@@ -71,7 +193,8 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
       exit(1);
     }
 
-    newLayer -> neurons = neuralnetwork -> neuronsInEachLayer[i];
+    newLayer -> neurons = currrentlayerconfig->neurons;
+    newLayer -> activationfunctiontype = currrentlayerconfig->activationfunctiontype;
     newLayer -> nextlayer = NULL;
     newLayer -> previouslayer = newLayer -> nextlayer;
     newLayer -> firstneuron = NULL;
@@ -85,7 +208,9 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
     }
 
     neuralnetwork -> lastlayer = newLayer;
-
+    
+    currrentlayer = newLayer;
+    
     for (int j = 0; j < newLayer -> neurons; j++) {
 
       Neuron * newneuron = (Neuron * ) malloc(sizeof(Neuron));
@@ -98,22 +223,18 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
       if (i == 0) {
         strcpy(newneuron->neurontype, "INPUT");
         newneuron -> weights = 0;
-        
       }
       else if(i==neuralnetwork -> layers - 1){
         strcpy(newneuron->neurontype, "OUTPUT");
-        newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-        newneuron -> bias = 0.0;
-        
+        newneuron -> weights = currrentlayer->previouslayer->neurons;
       } 
       else {
         strcpy(newneuron->neurontype, "HIDDEN");
-        newneuron -> weights = neuralnetwork -> neuronsInEachLayer[i-1];
-        newneuron -> bias = 0.0;
-
+        newneuron -> weights = currrentlayer->previouslayer->neurons;
       }
 
-      //newneuron -> bias = (float)(rand() % 10) / 100000.0; 
+      //newneuron -> bias = (float)(rand() % 100) / 100.0; 
+      newneuron -> bias = 0.0;
 
       newneuron -> nextneuron = NULL;
       newneuron -> previousneuron = newneuron -> nextneuron;
@@ -141,7 +262,7 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
           fprintf(stderr, "Alocation memory Failure\n");
           exit(1);
         }
-
+        
         // Gere um número aleatório entre 0 e 99 e converta para float entre 0 e 1
         newweight -> weight = (float)(rand() % 100) / 100.0; 
         //newweight->weight = 0.5;
@@ -157,25 +278,63 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork, int * neuronsInEachL
         newneuron -> lastweight = newweight;
       }
     }
+
+    currrentlayerconfig = currrentlayerconfig->next;
   }
 }
 
-void AggregationModel(FederatedLearning * clientmodel){
+//////////////////////////////////////////////////FEDERATEDLEARNING//////////////////////////////////////////////////
 
-FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
+FederatedLearning *getFederatedLearningInstance() {
 
-PrintNeuralNeuralNetwork(clientmodel->neuralnetwork);
+    static FederatedLearning instance;
+    pthread_mutex_lock(&singletonMutex);
+    if (instance.neuralnetwork == NULL) {
+        // Inicialize a NeuralNetwork conforme necessário
+        instance.neuralnetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
+        instance.globalmodelstatus = 0;
+        instance.trainingscounter = 0;
+        // Outras inicializações
+    }
+    pthread_mutex_unlock(&singletonMutex);  
+    return &instance;
+}
 
-printf("\n\n %d %d \n\n",
-                federatedlearninginstance->trainingscounter,
-                clientmodel->trainingscounter);
+void setFederatedLearningGlobalModel() {
 
-FederationAveraging(federatedlearninginstance->neuralnetwork,
-                clientmodel->neuralnetwork,
-                federatedlearninginstance->trainingscounter,
-                clientmodel->trainingscounter);
-                
-federatedlearninginstance->trainingscounter += clientmodel->trainingscounter;
+  FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();
+  LayerConfig *layerconfig0 = malloc(sizeof(LayerConfig));
+  LayerConfig *layerconfig1 = malloc(sizeof(LayerConfig));
+  LayerConfig *layerconfig2 = malloc(sizeof(LayerConfig));
+  LayerConfig *layerconfig3 = malloc(sizeof(LayerConfig));
+
+  layerconfig0->first =layerconfig0;
+  layerconfig0->neurons= 4;
+  layerconfig0->activationfunctiontype = 0;
+  layerconfig0->next = layerconfig1;
+
+  layerconfig1->neurons= 3;
+  layerconfig1->activationfunctiontype = RELU;
+  layerconfig1->next = layerconfig2;
+
+  layerconfig2->neurons= 3;
+  layerconfig2->activationfunctiontype = RELU;
+  layerconfig2->next = layerconfig3;
+
+  layerconfig3->neurons= 3;
+  layerconfig3->activationfunctiontype = SOFTMAX;
+  layerconfig3->next = NULL;
+
+  InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
+  
+  federatedLearningInstance->neuralnetwork->percentualtraining = 120;
+  federatedLearningInstance->neuralnetwork->epoch = 100;
+  federatedLearningInstance->neuralnetwork->alpha=0.001;
+  federatedLearningInstance->neuralnetwork->regularization=L2;
+  federatedLearningInstance->neuralnetwork->lambda =0.01;
+  federatedLearningInstance->globalmodelstatus=1;
+
+  printf("Neural Network Compiled!\n");
 
 }
 
@@ -213,49 +372,49 @@ void FederationAveraging(NeuralNetwork * globalneuralnetwork, NeuralNetwork * cl
   }
 }
 
-float Sigmoid(float Z) {
-  return 1.0 / (1.0 + exp(-Z));
+void AggregationModel(FederatedLearning * clientmodel){
+
+FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
+
+PrintNeuralNeuralNetwork(clientmodel->neuralnetwork);
+
+printf("\n\n %d %d \n\n",
+                federatedlearninginstance->trainingscounter,
+                clientmodel->trainingscounter);
+
+FederationAveraging(federatedlearninginstance->neuralnetwork,
+                clientmodel->neuralnetwork,
+                federatedlearninginstance->trainingscounter,
+                clientmodel->trainingscounter);
+                
+federatedlearninginstance->trainingscounter += clientmodel->trainingscounter;
+
 }
 
-void PerformanceMetrics(int PercentualEvaluation,int Threshold){
+void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold){
   
-    printf("teste 1\n");
-
-
-  NeuralNetwork *neuralnetwork = getFederatedLearningInstance()->neuralnetwork;
-
-    printf("teste 2 %d\n",neuralnetwork->firstlayer->neurons);
-
-
-
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
-  float outputdata[neuralnetwork->lastlayer->neurons];
-  float Precision=0.0, Recall=0.0, Accuracy=0.0,Specificity=0.0,F1Score=0.0;
-
-    printf("teste 3\n");
-
+  float Precision=0, Recall=0, Accuracy=0,Specificity=0,F1Score=0;
 
   int total=0,truepositive=0,falsepositive=0,truenegative=0,falsenegative=0;
 
   // variables to cycle through pointers
   Layer * currentlayer = neuralnetwork -> firstlayer;
   Neuron * currentneuron = currentlayer -> firstneuron;
-  Weight * currentweight;
 
   FILE * file = NULL;
   char line[1024];
-  char filename[] = "data/datasetevaluation.csv";
+
   //Abre o arquivo CSV para leitura
-    printf("Opening CSV file\n");
-    file = fopen(filename, "r");
+    file = fopen("dataset/datasetevaluation.csv", "r");
 
     if (file == NULL) {
         perror("Erro ao abrir o arquivo");
         return;
     }
 
-  for(int count=0;count<PercentualEvaluation;count++){
+  for(int count =0;count<PercentualEvaluation;count++){
       fgets(line, sizeof(line), file);
 
         // Divide a linha em campos usando a função strtok
@@ -287,65 +446,49 @@ void PerformanceMetrics(int PercentualEvaluation,int Threshold){
           
         }
 
-      printf("FEEDFOWARD\n");
-      //FEEDFOWARD
-      currentlayer = neuralnetwork->firstlayer->nextlayer;
-      for (int layer = 1; layer < neuralnetwork -> layers; layer++) {
+      FeedFoward(neuralnetwork);
 
-          Neuron *previousneuron = currentlayer->previouslayer->firstneuron;
-          currentneuron = currentlayer -> firstneuron;
-          float Z = 0;
-
-          //printf("neurons %d\n",currentlayer->neurons);
-
-          for (int i = 0; i < currentlayer -> neurons; i++) {
-            currentweight= currentneuron->firstweight;
-            //printf("wieghts %d bias %f\n",currentneuron->weights,currentneuron->bias);
-            Z+= currentneuron->bias;
-            for (int j = 0;  j< currentneuron -> weights; j++) {
-              Z += currentweight->weight * previousneuron->activationfunctionvalue;
-              //printf("W %f IN %f Z %f - ",currentweight->weight,previousneuron->activationfunctionvalue,Z);
-              currentweight =currentweight->nextweight;
-              previousneuron = previousneuron ->nextneuron;
-
-            }
-            currentneuron -> activationfunctionvalue = Sigmoid(Z);
-            //printf("ATIVACAO %f\n",currentneuron -> activationfunctionvalue);
-            Z = 0;
-            currentneuron = currentneuron -> nextneuron;
-            previousneuron = currentlayer->previouslayer->firstneuron;
-          }
-
-        currentlayer = currentlayer -> nextlayer;
-      }
-        
       currentneuron = neuralnetwork->lastlayer->firstneuron;
 
       for(int i=0;i< neuralnetwork->lastlayer->neurons;i++){
-        // printf("%f ",currentneuron->activationfunctionvalue);
-        // printf("%f\n",label[i]);
-
+         printf("%f ",currentneuron->activationfunctionvalue);
+         printf("%f ",label[i]);
+         printf("%f ",Threshold);
         if(label[i]==1){
-          // printf(" positivo\n");
+           //printf(" positivo\n");
           if(currentneuron->activationfunctionvalue > Threshold){
+            printf(" truepositive \n");
             truepositive++;
           }else{
+            printf(" falsepositive \n");
+
             falsepositive++;
           }
           total++;
+          
         }else{
-          printf("negativo\n");
+          //printf("negativo\n");
+
           if(currentneuron->activationfunctionvalue < Threshold){
+            printf(" truenegative \n");
+            
             truenegative++;
           }else{
+            printf(" falsenegative \n");
+
             falsenegative++;
           }
           total++;
+
         }
         currentneuron = currentneuron->nextneuron;
+
       }
       printf("\n");
+      
+
   }
+
   fclose(file);
 
       printf("total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",total,truepositive,truenegative,falsepositive,falsenegative);
@@ -355,33 +498,9 @@ void PerformanceMetrics(int PercentualEvaluation,int Threshold){
       Recall =(float)truepositive/(truepositive+falsenegative);
       Specificity = (float)truenegative/(truenegative+falsepositive);
       F1Score = 2*(float)(Precision * Recall)/(Precision + Recall);
-      printf("Accuracy: %.2f\n",30.0/90.0);
+      printf("Accuracy: %.2f\n",Accuracy);
       printf("Precision: %.2f\n",Precision);
       printf("Recall: %.2f\n",Recall);
       printf("Specificity: %.2f\n",Specificity);
       printf("F1-Score: %.2f\n",F1Score);
-}
-
-void setFederatedLearningGlobalModel() {
-    FederatedLearning *federatedLearningInstance = getFederatedLearningInstance();
-    federatedLearningInstance->neuralnetwork->layers = 4;
-    int vector[] = {4, 4, 2, 3};
-    InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, vector);
-    federatedLearningInstance->globalmodelstatus=1;
-    printf("Neural Network Compiled!\n");
-
-}
-
-FederatedLearning *getFederatedLearningInstance() {
-    static FederatedLearning instance;
-    pthread_mutex_lock(&singletonMutex);
-    if (instance.neuralnetwork == NULL) {
-        // Inicialize a NeuralNetwork conforme necessário
-        instance.neuralnetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
-        instance.globalmodelstatus = 0;
-        instance.trainingscounter = 0;
-        // Outras inicializações
-    }
-    pthread_mutex_unlock(&singletonMutex);  
-    return &instance;
 }

@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-
+#include <stdlib.h>
 
 struct ThreadArgs {
     int port;
@@ -17,9 +17,7 @@ struct ThreadArgs {
 int main() {
 
     FederatedLearning *FDI =  getFederatedLearningInstance();
-    printf("STATUS: %d\n",FDI->globalmodelstatus);
     setFederatedLearningGlobalModel();
-    printf("STATUS: %d\n",FDI->globalmodelstatus);
     //PerformanceMetrics(30,0.5);
 
     PrintNeuralNeuralNetwork(FDI->neuralnetwork);

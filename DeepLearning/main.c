@@ -34,11 +34,18 @@ typedef struct LayerConfig{
 }LayerConfig;
 
 typedef struct NeuralNetwork {
+  int epoch;
+  float alpha;
+  int regularization;
+  float lambda;
+  int percentualtraining;
   int lossfunctiontype;
   int layers;
   struct Layer * firstlayer, * lastlayer;
 }NeuralNetwork;
 
+
+//////////////////////////////////////////////////PRINT//////////////////////////////////////////////////
 
 void PrintNeuralNeuralNetWork(NeuralNetwork * neuralnetwork) {
 
@@ -98,8 +105,7 @@ void printMatriz(float **data, int linhas, int colunas) {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//////////////////////////////////////////////////DEEPLEARNINGMATHFUNCTIONS//////////////////////////////////////////////////
 
 float Perceptron(float Z){
     if(Z>0)
@@ -173,7 +179,7 @@ float CategoricalCrossEntropy(float * label, float * output, int labelsize) {
   return -sum;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////FREEALLOCATEDMEMORY//////////////////////////////////////////////////
 
 void freeWeight(Weight *weight) {
     if(weight!=NULL){
@@ -247,7 +253,8 @@ void freeMatrix(float **matrix, int lines) {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////DEEPLEARNINGNEURALNETWORK//////////////////////////////////////////////////
+
 
 float ActivationFunctionCalculaton(NeuralNetwork *neuralnetwork,float Z, int activationfunctiontype){
 
@@ -295,7 +302,7 @@ case 4:
       return SoftMax(Z,softmaxsum);
 
 default:
-  break;
+  return 0;
 }
 
 }
@@ -312,7 +319,7 @@ case 3:
   return SigmoidDerivative(a); 
   
   default:
-    break;
+    return 0;
   }
 }
 
@@ -325,15 +332,27 @@ float StochasticGradientDescentCalculation( float weight,float output ,float del
       return -alpha * deltafunction * output;
     
     case 1:
-      return 0;
+      //printf("REGULATION 1 ");
 
+      if(weight >0){
+        return -alpha * (deltafunction * output + 1);
+
+      }
+      else if(weight==0){
+        return -alpha * (deltafunction * output + 0);
+
+      }
+      else{
+        return -alpha * (deltafunction * output -1);
+        
+      }
     case 2:
       //printf("REGULATION 2 ");
 
       return -alpha * (deltafunction * output + 2*lambda*weight);
       
     default:
-      break;
+      return 0;
   }
 }
 
@@ -426,7 +445,7 @@ float LossFunctionCalculation(NeuralNetwork * neuralnetwork, float *labelvector,
     }
 
   default:
-    break;
+    return 0;
   }
 }
 
@@ -711,7 +730,7 @@ void BackPropagation(NeuralNetwork *neuralnetwork, float *label, float alpha, in
   freeVector(deltafunctions);
 }
 
-void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float alpha,int Epoch, int PercentualTraining,int Regularization, float Lambda) {
+void NeuralNetworkTraining(NeuralNetwork * neuralnetwork) {
   
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
@@ -729,7 +748,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float alpha,int Epoch,
   //     return;
   // }
 
-  for (int TrainingCycle = 0; TrainingCycle < Epoch; TrainingCycle++) {
+  for (int TrainingCycle = 0; TrainingCycle < neuralnetwork->epoch; TrainingCycle++) {
 
     file = fopen("dataset/datasettraining.csv", "r");
 
@@ -738,7 +757,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float alpha,int Epoch,
         return;
     }
 
-    for(int count =0; count < PercentualTraining; count++){
+    for(int count =0; count < neuralnetwork->percentualtraining; count++){
       
       fgets(line, sizeof(line), file);
 
@@ -772,8 +791,8 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork, float alpha,int Epoch,
       }
 
       FeedFoward(neuralnetwork);
-      Error = LossFunctionCalculation(neuralnetwork,label,Regularization,Lambda);
-      BackPropagation(neuralnetwork,label,alpha,Regularization,Lambda);
+      Error = LossFunctionCalculation(neuralnetwork,label,neuralnetwork->regularization,neuralnetwork->lambda);
+      BackPropagation(neuralnetwork,label,neuralnetwork->alpha,neuralnetwork->regularization,neuralnetwork->lambda);
 
       //printf("Loss: %f\n",Error);
 
@@ -801,7 +820,6 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
   
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
-  float outputdata[neuralnetwork->lastlayer->neurons];
   float Precision=0, Recall=0, Accuracy=0,Specificity=0,F1Score=0;
 
   int total=0,truepositive=0,falsepositive=0,truenegative=0,falsenegative=0;
@@ -809,7 +827,6 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
   // variables to cycle through pointers
   Layer * currentlayer = neuralnetwork -> firstlayer;
   Neuron * currentneuron = currentlayer -> firstneuron;
-  Weight * currentweight;
 
   FILE * file = NULL;
   char line[1024];
@@ -949,7 +966,14 @@ int main() {
 
 
   PrintNeuralNeuralNetWork(&neuralnetwork);
-  NeuralNetworkTraining(&neuralnetwork, 0.001,80,120,L2,0.01 );
+
+  neuralnetwork.percentualtraining = 120;
+  neuralnetwork.epoch = 100;
+  neuralnetwork.alpha=0.001;
+  neuralnetwork.regularization=L2;
+  neuralnetwork.lambda =0.01;
+
+  NeuralNetworkTraining(&neuralnetwork);
 
   //PrintNeuralNeuralNetWork( & neuralnetwork);
 
