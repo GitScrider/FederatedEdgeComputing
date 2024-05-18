@@ -14,9 +14,11 @@
 #define LED_PIN_ERROR 12
 #define LED_PIN_WORKING 14
 #define LED_PIN_SYNC 27
+#define BUTTON_PIN 26
 
-#define WIFI_SSID       "56kbps2.4GHz"
-#define WIFI_PASSWORD   "00000001"
+
+#define WIFI_SSID       "128kbps 2.4Ghz"
+#define WIFI_PASSWORD   "a0000001"
 
 void WIFIConfiguration();
 void UARTConfiguration();

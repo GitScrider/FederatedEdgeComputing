@@ -133,7 +133,6 @@ void perform_post_request(const char *url, cJSON *json_data) {
     //free(post_data); // Libera a memória alocada para a string JSON
 }
 
-// Funções específicas para cada recurso
 FederatedLearning * getglobalmodel()
 {
 
@@ -151,19 +150,7 @@ FederatedLearning * getglobalmodel()
 
     FederatedLearning *FederatedLearningInstance = JSONToFederatedLearning(req);
 
-
-    printf("TESTE1\n");
-
-    // char *jsonString = cJSON_Print(jsonModel);
-    // printf("JSON: %s\n", jsonString);
-    // free(jsonString);
-
-    //printf("TESTE2\n");
-
-
-    //FederatedLearning *FederatedLearningInstance = JSONToFederatedLearning(req);
-
-        cJSON_Delete(req);
+    cJSON_Delete(req);
 
 
     return FederatedLearningInstance;
