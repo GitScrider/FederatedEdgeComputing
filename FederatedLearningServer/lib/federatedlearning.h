@@ -21,6 +21,21 @@
 #define L1 1
 #define L2 2
 
+//////////
+
+typedef struct NodeClient{
+  char ip_id[15];
+  int interactionnumber;
+  struct NodeClient *previousnodeclient, *nextnodeclient;
+}NodeClient;
+
+typedef struct NodeControl{
+  int interactionnumberversion;
+  struct NodeClient *firstnodeclient, *lastnodeclient;
+}NodeControl;
+
+//////////
+
 typedef struct Weight {
   float weight;
   struct Weight * previousweight, * nextweight;
@@ -42,12 +57,6 @@ typedef struct Layer {
   struct Layer * previouslayer, * nextlayer;
 }Layer;
 
-typedef struct LayerConfig{
-  struct LayerConfig *first, *next;
-  int neurons;
-  int activationfunctiontype;  
-}LayerConfig;
-
 typedef struct NeuralNetwork {
   int epoch;
   float alpha;
@@ -63,7 +72,17 @@ typedef struct FederatedLearning{
     int globalmodelstatus;
     int trainingscounter;
     NeuralNetwork *neuralnetwork;
+    NodeControl *nodecontrol;
 }FederatedLearning;
+
+//////////
+
+typedef struct LayerConfig{
+  struct LayerConfig *first, *next;
+  int neurons;
+  int activationfunctiontype;  
+}LayerConfig;
+
 
 
 //Methods

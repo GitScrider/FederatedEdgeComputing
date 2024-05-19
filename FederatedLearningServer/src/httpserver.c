@@ -15,20 +15,25 @@ struct ThreadArgs {
 };
 
 
-void handle_request(int client_socket) {
+void handle_request(int client_socket,struct sockaddr_in client_address) {
     
     char buffer[BUFFER_SIZE] = {0};
     read(client_socket, buffer, BUFFER_SIZE - 1);
-    printf("Request received:\n%s\n", buffer);
+    //printf("Request received:\n%s\n", buffer);
     //Extracting the bory from the request.
     char *body_start = strstr(buffer, "\r\n\r\n");
     const char *request_body = (body_start != NULL) ? body_start + 4 : "";
-    //printf("request body:\n%s\n", request_body);
+    
+    char client_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(client_address.sin_addr), client_ip, INET_ADDRSTRLEN);
 
-    //Processing the request.
-    //Redirecting to the endpoints handlers.
+    //Processing the request. Redirecting to the endpoints handlers.
     if (strstr(buffer, "GET /api/checkglobalmodel HTTP/1.1") != NULL){
-        handle_get_checkmodelstatus(client_socket);
+        handle_get_checkmodelstatus(client_socket,client_ip);
+    }
+    else if(strstr(buffer, "GET /api/noderegister HTTP/1.1") != NULL){
+
+        handle_get_noderegister(client_socket,client_ip);
     }
     else if (strstr(buffer, "GET /api/getglobalmodel HTTP/1.1") != NULL){
         handle_get_globalmodel(client_socket);
@@ -57,7 +62,7 @@ void *start_httpserver(void *args) {
     struct ThreadArgs *threadArgs = (struct ThreadArgs *)args;
     int server_socket, client_socket;
     struct sockaddr_in server_addr, client_addr;
-    socklen_t addr_size = sizeof(struct sockaddr_in);
+    socklen_t addr_size = sizeof(client_addr);
 
     //Creating the socket
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -93,7 +98,7 @@ void *start_httpserver(void *args) {
         }
 
         // Handles the customer's request
-        handle_request(client_socket);
+        handle_request(client_socket,client_addr);
     }
 
     // Close the server socket

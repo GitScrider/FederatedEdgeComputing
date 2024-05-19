@@ -290,11 +290,14 @@ FederatedLearning *getFederatedLearningInstance() {
     static FederatedLearning instance;
     pthread_mutex_lock(&singletonMutex);
     if (instance.neuralnetwork == NULL) {
-        // Inicialize a NeuralNetwork conforme necessário
         instance.neuralnetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
         instance.globalmodelstatus = 0;
-        instance.trainingscounter = 0;
-        // Outras inicializações
+        instance.trainingscounter = 1;
+
+        instance.nodecontrol = (NodeControl *)malloc(sizeof(NodeControl));
+        instance.nodecontrol->firstnodeclient=NULL;
+        instance.nodecontrol->lastnodeclient=instance.nodecontrol->firstnodeclient;
+        instance.nodecontrol->interactionnumberversion=0;
     }
     pthread_mutex_unlock(&singletonMutex);  
     return &instance;
@@ -328,7 +331,7 @@ void setFederatedLearningGlobalModel() {
   InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
   
   federatedLearningInstance->neuralnetwork->percentualtraining = 120;
-  federatedLearningInstance->neuralnetwork->epoch = 100;
+  federatedLearningInstance->neuralnetwork->epoch = 8;
   federatedLearningInstance->neuralnetwork->alpha=0.001;
   federatedLearningInstance->neuralnetwork->regularization=L2;
   federatedLearningInstance->neuralnetwork->lambda =0.01;
