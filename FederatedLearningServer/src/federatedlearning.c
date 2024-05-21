@@ -295,9 +295,9 @@ FederatedLearning *getFederatedLearningInstance() {
         instance.trainingscounter = 1;
 
         instance.nodecontrol = (NodeControl *)malloc(sizeof(NodeControl));
-        instance.nodecontrol->firstnodeclient=NULL;
-        instance.nodecontrol->lastnodeclient=instance.nodecontrol->firstnodeclient;
-        instance.nodecontrol->interactionnumberversion=0;
+        instance.nodecontrol->firstclientnode=NULL;
+        instance.nodecontrol->lastclientnode=instance.nodecontrol->firstclientnode;
+        instance.nodecontrol->currentinteraction=0;
     }
     pthread_mutex_unlock(&singletonMutex);  
     return &instance;
@@ -335,7 +335,11 @@ void setFederatedLearningGlobalModel() {
   federatedLearningInstance->neuralnetwork->alpha=0.001;
   federatedLearningInstance->neuralnetwork->regularization=L2;
   federatedLearningInstance->neuralnetwork->lambda =0.01;
-  federatedLearningInstance->globalmodelstatus=1;
+
+  federatedLearningInstance->nodecontrol->interactioncycle=10;
+  federatedLearningInstance->nodecontrol->clientnodes=1;
+
+  federatedLearningInstance->globalmodelstatus=0;
 
   printf("Neural Network Compiled!\n");
 
@@ -375,22 +379,34 @@ void FederationAveraging(NeuralNetwork * globalneuralnetwork, NeuralNetwork * cl
   }
 }
 
-void AggregationModel(FederatedLearning * clientmodel){
+void AggregationModel(FederatedLearning * clientmodel,ClientNode * clientenode){
 
-FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
+  FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
 
-PrintNeuralNeuralNetwork(clientmodel->neuralnetwork);
+  //PrintNeuralNeuralNetwork(clientmodel->neuralnetwork);
+  //printf("\n\n %d %d \n\n",
+  //                federatedlearninginstance->trainingscounter,
+  //                clientmodel->trainingscounter);
 
-printf("\n\n %d %d \n\n",
-                federatedlearninginstance->trainingscounter,
-                clientmodel->trainingscounter);
+  FederationAveraging(federatedlearninginstance->neuralnetwork,
+                  clientmodel->neuralnetwork,
+                  federatedlearninginstance->trainingscounter,
+                  clientmodel->trainingscounter);
+                  
+  federatedlearninginstance->trainingscounter += clientmodel->trainingscounter;
 
-FederationAveraging(federatedlearninginstance->neuralnetwork,
-                clientmodel->neuralnetwork,
-                federatedlearninginstance->trainingscounter,
-                clientmodel->trainingscounter);
-                
-federatedlearninginstance->trainingscounter += clientmodel->trainingscounter;
+  ClientNode *currentclientnode =  federatedlearninginstance->nodecontrol->firstclientnode;
+  
+  while (currentclientnode!=NULL){
+    printf("%d %d",federatedlearninginstance->nodecontrol->currentinteraction,currentclientnode->interaction);
+    if(federatedlearninginstance->nodecontrol->currentinteraction==currentclientnode->interaction){
+      return;
+    }
+    currentclientnode = currentclientnode->nextclientnode;
+  }
+
+  PerformanceMetrics(federatedlearninginstance->neuralnetwork,30,0.5);
+  federatedlearninginstance->nodecontrol->currentinteraction++;
 
 }
 
@@ -410,7 +426,7 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
   char line[1024];
 
   //Abre o arquivo CSV para leitura
-    file = fopen("dataset/datasetevaluation.csv", "r");
+    file = fopen("datasetevaluation.csv", "r");
 
     if (file == NULL) {
         perror("Erro ao abrir o arquivo");

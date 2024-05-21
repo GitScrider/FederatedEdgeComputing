@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <libwebsockets.h>
 
-
 // Estrutura para passar argumentos para a thread
 struct ThreadArgs {
     int port;
@@ -14,6 +13,7 @@ struct ThreadArgs {
 typedef struct client_message {
     const char* message;
     int length;
+    char ip_id[15];
     struct client_message *previous;
     struct client_message *next;
 } client_message;
@@ -45,7 +45,7 @@ void init_buffer_client_message(buffer_client_message **handle_message) {
     }
 }
 
-void insert_buffer_client_message(const char* message, int length) {
+void insert_buffer_client_message(const char* message, int length,char*ip_addr) {
 
     buffer_client_message *buffer = get_buffer_client_message();
     client_message *new_client_message = (client_message *)malloc(sizeof(client_message));
@@ -57,11 +57,13 @@ void insert_buffer_client_message(const char* message, int length) {
     new_client_message->message = strdup(message);
     if (new_client_message->message == NULL) {
         printf("Failed to allocate memory for message copy.\n");
-        free(new_client_message); // Libera a estrutura client_message alocada
+        free(new_client_message); 
         return;
     }
 
     new_client_message->length = length;
+    strcpy(new_client_message->ip_id,ip_addr);
+
 
     if (is_buffer_client_message_empty(buffer)) {
         buffer->first = new_client_message;
@@ -74,9 +76,7 @@ void insert_buffer_client_message(const char* message, int length) {
         new_client_message->next = NULL;
         buffer->last = new_client_message;
     }
-
 }
-
 
 void remove_buffer_client_message() {
 
@@ -87,10 +87,8 @@ void remove_buffer_client_message() {
     }
 
     client_message *removed_message = buffer->first;
-
     printf("Removed message: %d %s\n",removed_message->length, removed_message->message);
-    handle_clint_model_message(removed_message->message,removed_message->length);
-
+    handle_clint_model_message(removed_message->message,removed_message->length,removed_message->ip_id);
 
     if (buffer->first == buffer->last) {
         buffer->first = NULL;
@@ -126,20 +124,44 @@ static int is_complete_json(const char *json, size_t len) {
     return (count_open_braces == count_close_braces && count_open_braces > 0);
 }
 
-#define MAX_JSON_SIZE 16384 // Tamanho máximo da string JSON
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static char received_json[MAX_JSON_SIZE + 1]; // +1 para o terminador nulo
+#define MAX_JSON_SIZE 16384 // String JSON max size
+#define IPV4_MAX_LEN 16 
+
+struct per_session_data { char client_ip[IPV4_MAX_LEN];};
+static char received_json[MAX_JSON_SIZE + 1];
 static size_t received_json_len = 0;
 
-// Callback para tratamento de mensagens recebidas
+void get_client_ip(struct lws *wsi, char *client_ip, size_t len) {
+    char full_ip[128];
+    lws_get_peer_simple(wsi, full_ip, sizeof(full_ip));
+    
+    const char *ipv4_part = strrchr(full_ip, ':');
+    if (ipv4_part != NULL && (strlen(ipv4_part + 1) < len)) {
+        strncpy(client_ip, ipv4_part + 1, len - 1);
+        client_ip[len - 1] = '\0'; 
+    } else {
+        strncpy(client_ip, full_ip, len - 1);
+        client_ip[len - 1] = '\0';
+    }
+
+}
+
+// Callback for received messages 
 static int callback_echo(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
+    
+    struct per_session_data *pss = (struct per_session_data *)user;
+    
     switch (reason) {
-        case LWS_CALLBACK_SERVER_WRITEABLE:
-            // Implementar aqui se necessário
+        case LWS_CALLBACK_ESTABLISHED:  
+            printf("Connection established\n");
             break;
+
         case LWS_CALLBACK_RECEIVE:
+
             if (received_json_len + len > MAX_JSON_SIZE) {
-                fprintf(stderr, "Mensagem recebida muito grande\n");
+                fprintf(stderr, "Received message too big\n");
                 return -1;
             }
 
@@ -147,18 +169,22 @@ static int callback_echo(struct lws *wsi, enum lws_callback_reasons reason, void
             received_json_len += len;
 
             if (is_complete_json(received_json, received_json_len)) {
-                
+                if (pss->client_ip[0] == '\0') {
+                    get_client_ip(wsi, pss->client_ip, sizeof(pss->client_ip));
+                }
+                printf("Message received from %s\n", pss->client_ip);
                 received_json[received_json_len] = '\0';
                 printf("Received JSON: %.*s\n",received_json_len ,received_json);
-                insert_buffer_client_message(received_json, received_json_len);
+                insert_buffer_client_message(received_json, received_json_len,pss->client_ip);
                 received_json_len = 0;
             }
 
             break;
+        case LWS_CALLBACK_SERVER_WRITEABLE:
+            break;
         default:
             break;
     }
-
     return 0;
 }
 
@@ -176,8 +202,8 @@ void *start_websocketserver(void *args) {
     info.max_http_header_data = 16384;
 
     struct lws_protocols protocols[] = {
-        {"echo-protocol", callback_echo, 0, 0},
-        {NULL, NULL, 0, 0} 
+        {"echo-protocol", callback_echo, sizeof(struct per_session_data), 0},
+        {NULL, NULL, 0, 0}  
     };
 
     info.protocols = protocols;
@@ -196,6 +222,5 @@ void *start_websocketserver(void *args) {
     }
 
     lws_context_destroy(context);
-
     return NULL;
 }

@@ -20,7 +20,7 @@ int main() {
     setFederatedLearningGlobalModel();
     //PerformanceMetrics(30,0.5);
 
-    PrintNeuralNeuralNetwork(FDI->neuralnetwork);
+    //PrintNeuralNeuralNetwork(FDI->neuralnetwork);
 
     cJSON *jsondata = federatedLearningToJSON(FDI);
 

@@ -23,15 +23,18 @@
 
 //////////
 
-typedef struct NodeClient{
+typedef struct ClientNode{
   char ip_id[15];
-  int interactionnumber;
-  struct NodeClient *previousnodeclient, *nextnodeclient;
-}NodeClient;
+  int interaction;
+  struct ClientNode *previousclientnode, *nextclientnode;
+}ClientNode;
 
 typedef struct NodeControl{
-  int interactionnumberversion;
-  struct NodeClient *firstnodeclient, *lastnodeclient;
+  int currentinteraction;
+  int interactioncycle;
+  int clientnodes;
+  int clientnodesregistered;
+  struct ClientNode *firstclientnode, *lastclientnode;
 }NodeControl;
 
 //////////
@@ -83,11 +86,10 @@ typedef struct LayerConfig{
   int activationfunctiontype;  
 }LayerConfig;
 
-
-
 //Methods
 FederatedLearning *getFederatedLearningInstance();
 void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork);
 void setFederatedLearningGlobalModel();
+void AggregationModel(FederatedLearning * clientmodel,ClientNode * clientenode);
 void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold);
 #endif
