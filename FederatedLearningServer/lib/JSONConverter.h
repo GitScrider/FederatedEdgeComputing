@@ -4,7 +4,7 @@
 #include "federatedlearning.h"
 #include "../lib/cJSON.h"
 
-cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning);
+cJSON* FederatedLearningToJSON(FederatedLearning* federatedLearning);
 FederatedLearning* JSONToFederatedLearning(const cJSON* json);
 
 #endif

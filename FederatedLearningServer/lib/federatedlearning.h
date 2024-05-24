@@ -23,22 +23,6 @@
 
 //////////
 
-typedef struct ClientNode{
-  char ip_id[15];
-  int interaction;
-  struct ClientNode *previousclientnode, *nextclientnode;
-}ClientNode;
-
-typedef struct NodeControl{
-  int currentinteraction;
-  int interactioncycle;
-  int clientnodes;
-  int clientnodesregistered;
-  struct ClientNode *firstclientnode, *lastclientnode;
-}NodeControl;
-
-//////////
-
 typedef struct Weight {
   float weight;
   struct Weight * previousweight, * nextweight;
@@ -71,6 +55,25 @@ typedef struct NeuralNetwork {
   struct Layer * firstlayer, * lastlayer;
 }NeuralNetwork;
 
+//////////
+
+typedef struct ClientNode{
+  char ip_id[15];
+  int interaction;
+  struct ClientNode *previousclientnode, *nextclientnode;
+}ClientNode;
+
+typedef struct NodeControl{
+  int currentinteraction;
+  int interactioncycle;
+  int clientnodes;
+  int clientnodesregistered;
+  NeuralNetwork *neuralnetwork;
+  struct ClientNode *firstclientnode, *lastclientnode;
+}NodeControl;
+
+//////////
+
 typedef struct FederatedLearning{
     int globalmodelstatus;
     int trainingscounter;
@@ -90,6 +93,6 @@ typedef struct LayerConfig{
 FederatedLearning *getFederatedLearningInstance();
 void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork);
 void setFederatedLearningGlobalModel();
-void AggregationModel(FederatedLearning * clientmodel,ClientNode * clientenode);
+void AggregationModel(FederatedLearning * clientmodel);
 void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold);
 #endif

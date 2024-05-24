@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 //FFEDERATED LEARNING TO JSON
-cJSON* federatedLearningToJSON(const FederatedLearning* federatedLearning) {
+cJSON* FederatedLearningToJSON(FederatedLearning* federatedLearning) {
     cJSON* root = cJSON_CreateObject();
 
     cJSON_AddItemToObject(root, "globalmodelstatus", cJSON_CreateNumber(federatedLearning->globalmodelstatus));

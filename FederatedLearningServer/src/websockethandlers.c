@@ -27,7 +27,7 @@ void handle_clint_model_message(const char * message, int length,char *ip_addr){
             FederatedLearning *clientmodel = JSONToFederatedLearning(json_model);
             if(clientmodel != NULL){
                 currentclientnode->interaction++;
-                AggregationModel(clientmodel,currentclientnode);
+                AggregationModel(clientmodel);
             }
             cJSON_Delete(json_model);
         }

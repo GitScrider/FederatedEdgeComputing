@@ -23,6 +23,14 @@ typedef struct buffer_client_message {
     client_message *last;
 } buffer_client_message;
 
+void init_buffer_client_message(buffer_client_message **handle_message) {
+    if (*handle_message == NULL) {
+        *handle_message = (buffer_client_message *)malloc(sizeof(buffer_client_message));
+        (*handle_message)->first = NULL;
+        (*handle_message)->last = NULL;
+    }
+}
+
 buffer_client_message* get_buffer_client_message() {
     static buffer_client_message *buffer = NULL;
     if (buffer == NULL) {
@@ -34,15 +42,6 @@ buffer_client_message* get_buffer_client_message() {
 int is_buffer_client_message_empty() {
     buffer_client_message *buffer = get_buffer_client_message();
     return buffer->last == NULL;
-}
-
-
-void init_buffer_client_message(buffer_client_message **handle_message) {
-    if (*handle_message == NULL) {
-        *handle_message = (buffer_client_message *)malloc(sizeof(buffer_client_message));
-        (*handle_message)->first = NULL;
-        (*handle_message)->last = NULL;
-    }
 }
 
 void insert_buffer_client_message(const char* message, int length,char*ip_addr) {
@@ -87,7 +86,6 @@ void remove_buffer_client_message() {
     }
 
     client_message *removed_message = buffer->first;
-    printf("Removed message: %d %s\n",removed_message->length, removed_message->message);
     handle_clint_model_message(removed_message->message,removed_message->length,removed_message->ip_id);
 
     if (buffer->first == buffer->last) {
@@ -172,9 +170,7 @@ static int callback_echo(struct lws *wsi, enum lws_callback_reasons reason, void
                 if (pss->client_ip[0] == '\0') {
                     get_client_ip(wsi, pss->client_ip, sizeof(pss->client_ip));
                 }
-                printf("Message received from %s\n", pss->client_ip);
                 received_json[received_json_len] = '\0';
-                printf("Received JSON: %.*s\n",received_json_len ,received_json);
                 insert_buffer_client_message(received_json, received_json_len,pss->client_ip);
                 received_json_len = 0;
             }
@@ -201,9 +197,10 @@ void *start_websocketserver(void *args) {
     info.options = 0;
     info.max_http_header_data = 16384;
 
+
     struct lws_protocols protocols[] = {
-        {"echo-protocol", callback_echo, sizeof(struct per_session_data), 0},
-        {NULL, NULL, 0, 0}  
+        {"echo-protocol", callback_echo, sizeof(struct per_session_data), 0, 0, NULL, 0},
+        {NULL, NULL, 0, 0, 0, NULL, 0}
     };
 
     info.protocols = protocols;

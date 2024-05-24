@@ -22,7 +22,7 @@ int main() {
 
     //PrintNeuralNeuralNetwork(FDI->neuralnetwork);
 
-    cJSON *jsondata = federatedLearningToJSON(FDI);
+    cJSON *jsondata = FederatedLearningToJSON(FDI);
 
     //Imprimir o JSON resultante
     char* jsonString = cJSON_Print(jsondata);
