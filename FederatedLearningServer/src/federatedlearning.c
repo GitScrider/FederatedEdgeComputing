@@ -12,28 +12,35 @@ static pthread_mutex_t singletonMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void PrintNeuralNeuralNetwork(NeuralNetwork * neuralnetwork) {
 
+  printf("epoch: %d\n",neuralnetwork->epoch);
+  printf("alpha: %.10f\n",neuralnetwork->alpha);
+  printf("regularization: %d\n",neuralnetwork->regularization);
+  printf("lambda: %.10f\n",neuralnetwork->lambda);
+  printf("percentualtraining: %d\n",neuralnetwork->percentualtraining);
+  printf("lossfunctiontype: %d\n",neuralnetwork->lossfunctiontype);
+  printf("layers: %d\n",neuralnetwork->layers);
+
   int i = 0, j = 0, k = 0;
 
   Layer * currentlayer = neuralnetwork -> firstlayer;
   while (currentlayer != NULL) {
 
     i++;
-    printf("layer %d neurons: %d\n", i, currentlayer -> neurons);
-
+    printf("activationfunctiontype: %d - layer %d - neurons: %d\n",currentlayer->activationfunctiontype,i,currentlayer -> neurons);
     Neuron * currentneuron = currentlayer -> firstneuron;
 
     while (currentneuron != NULL) {
 
       j++;
-      printf("%s neuron %d - weights: %d\n",currentneuron->neurontype , j,currentneuron -> weights);
-      printf("Bias: %.10f\n",currentneuron->bias);
+      printf("neurontype %s - neuron %d - weights: %d\n",currentneuron->neurontype , j,currentneuron -> weights);
+      printf("bias: %.10f\n",currentneuron->bias);
 
       Weight * currentweight = currentneuron -> firstweight;
 
       while (currentweight != NULL) {
 
         k++;
-        printf("%d value: %.10f ", k, currentweight -> weight);
+        printf("weight: %d - value: %.10f ", k, currentweight -> weight);
 
         currentweight = currentweight -> nextweight;
       }
@@ -447,7 +454,24 @@ void FeedFoward(NeuralNetwork * neuralnetwork){
     }
 }
 
-void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork,int layers,LayerConfig *layersconfig, int lossfunctiontype) {
+float WeightValue(int weightvalue){
+  switch (weightvalue){
+    case 0:
+      return 0;
+      break;
+    case 1:
+      return (float)(rand() % 100) / 100.0;
+      break;
+    case 2:
+      return 0.5;
+      break;
+    default:
+      break;
+  }
+  return 0;
+}
+
+void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork,int layers,LayerConfig *layersconfig, int lossfunctiontype, int weightvalue) {
 
   LayerConfig *currrentlayerconfig = layersconfig->first;
   Layer *currrentlayer;
@@ -541,9 +565,7 @@ void InitializeNeuralNetWork(NeuralNetwork * neuralnetwork,int layers,LayerConfi
           exit(1);
         }
         
-        // Gere um número aleatório entre 0 e 99 e converta para float entre 0 e 1
-        newweight -> weight = (float)(rand() % 100) / 100.0; 
-        //newweight->weight = 0.5;
+        newweight -> weight = WeightValue(weightvalue); 
         newweight -> nextweight = NULL;
         newweight -> previousweight = newweight -> nextweight;
 
@@ -570,7 +592,7 @@ FederatedLearning *getFederatedLearningInstance() {
     if (instance.neuralnetwork == NULL) {
         instance.neuralnetwork = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
         instance.globalmodelstatus = 0;
-        instance.trainingscounter = 1;
+        instance.trainingscounter = 0;
 
         instance.nodecontrol = (NodeControl *)malloc(sizeof(NodeControl));
         instance.nodecontrol->firstclientnode=NULL;
@@ -607,7 +629,7 @@ void setFederatedLearningGlobalModel() {
   layerconfig3->activationfunctiontype = SOFTMAX;
   layerconfig3->next = NULL;
 
-  InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
+  InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY,WEIGHT_VALUE_RANDOM);
   
   federatedLearningInstance->neuralnetwork->percentualtraining = 120;
   federatedLearningInstance->neuralnetwork->epoch = 8;
@@ -617,14 +639,40 @@ void setFederatedLearningGlobalModel() {
 
   federatedLearningInstance->nodecontrol->interactioncycle=10;
   federatedLearningInstance->nodecontrol->clientnodes=1;
-  federatedLearningInstance->nodecontrol->neuralnetwork=CopyNeuralNetwork(federatedLearningInstance->neuralnetwork);
+  InitializeNeuralNetWork(federatedLearningInstance->nodecontrol->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY,WEIGHT_VALUE_ZERO);
+  federatedLearningInstance->nodecontrol->neuralnetwork->alpha=0.001;
+  federatedLearningInstance->nodecontrol->neuralnetwork->epoch = 8;
+  federatedLearningInstance->nodecontrol->neuralnetwork->regularization=L2;
+  federatedLearningInstance->nodecontrol->neuralnetwork->lambda =0.01;
+  federatedLearningInstance->nodecontrol->neuralnetwork->percentualtraining = 120;
+
   federatedLearningInstance->globalmodelstatus=1;
 
   printf("Neural Network Compiled!\n");
 
 }
 
-void FederationAveraging(NeuralNetwork * globalneuralnetwork, NeuralNetwork * clientneuralnetwork, int currenttrainingcounter, int clienttrainingcounter){
+void FederatedAveraging(NeuralNetwork *globalneuralnetwork, int currenttrainingcounter){
+
+  Layer * currentgloballayer = globalneuralnetwork -> firstlayer;
+  while (currentgloballayer != NULL) {
+    Neuron * currentglobalneuron = currentgloballayer -> firstneuron;
+    while (currentglobalneuron != NULL) {
+      //printf("bias:%.5f / %d = %.5f \n",currentglobalneuron->bias,currenttrainingcounter,currentglobalneuron->bias / currenttrainingcounter);
+      currentglobalneuron->bias = currentglobalneuron->bias / currenttrainingcounter;
+      Weight * currentglobalweight = currentglobalneuron -> firstweight;
+      while (currentglobalweight != NULL) {
+        //printf("weight:%.5f / %d = %.5f \n",currentglobalweight->weight,currenttrainingcounter,currentglobalweight->weight/currenttrainingcounter);
+        currentglobalweight->weight = currentglobalweight->weight/currenttrainingcounter;
+        currentglobalweight = currentglobalweight -> nextweight;
+      }
+      currentglobalneuron = currentglobalneuron -> nextneuron;
+    }
+    currentgloballayer = currentgloballayer -> nextlayer;
+  }
+}
+
+void FederatedAveragingSum(NeuralNetwork *globalneuralnetwork, NeuralNetwork *clientneuralnetwork, int clienttrainingcounter){
 
   Layer * currentgloballayer = globalneuralnetwork -> firstlayer;
   Layer * currentclientlayer = clientneuralnetwork -> firstlayer;
@@ -635,26 +683,41 @@ void FederationAveraging(NeuralNetwork * globalneuralnetwork, NeuralNetwork * cl
     Neuron * currentclientneuron = currentclientlayer -> firstneuron;
 
     while (currentglobalneuron != NULL) {
-
+      //printf("bias:%.5f * %d = %.5f\n",currentclientneuron->bias,clienttrainingcounter,currentclientneuron->bias*clienttrainingcounter);
+      currentglobalneuron->bias += currentclientneuron->bias*clienttrainingcounter;
       Weight * currentglobalweight = currentglobalneuron -> firstweight;
       Weight * currentclientweight = currentclientneuron -> firstweight;
 
       while (currentglobalweight != NULL) {
 
-        printf("%.5f * %d + %.5f * %d / %d + %d\n",currentglobalweight->weight,currenttrainingcounter,currentclientweight->weight,clienttrainingcounter,currenttrainingcounter,clienttrainingcounter);
+        //printf("weight:%.5f * %d = %.5f\n",currentclientweight->weight,clienttrainingcounter,currentclientweight->weight*clienttrainingcounter);
 
-        currentglobalweight->weight = (currentglobalweight->weight*currenttrainingcounter + currentclientweight->weight*clienttrainingcounter)/(currenttrainingcounter+clienttrainingcounter);
+        currentglobalweight->weight += currentclientweight->weight*clienttrainingcounter;
         currentglobalweight = currentglobalweight -> nextweight;
         currentclientweight = currentclientweight-> nextweight;
       }
-      //printf("\n");
       currentglobalneuron = currentglobalneuron -> nextneuron;
       currentclientneuron = currentclientneuron -> nextneuron;
     }
-      //printf("\n");
-
     currentgloballayer = currentgloballayer -> nextlayer;
     currentclientlayer = currentclientlayer -> nextlayer;
+  }
+}
+
+void SetNeuralNetworkZeroWeightValue(NeuralNetwork *globalneuralnetwork){
+  Layer * currentgloballayer = globalneuralnetwork -> firstlayer;
+  while (currentgloballayer != NULL) {
+    Neuron * currentglobalneuron = currentgloballayer -> firstneuron;
+    currentglobalneuron->bias = 0;
+    while (currentglobalneuron != NULL) {
+      Weight * currentglobalweight = currentglobalneuron -> firstweight;
+      while (currentglobalweight != NULL) {
+        currentglobalweight->weight = 0;
+        currentglobalweight = currentglobalweight -> nextweight;
+      }
+      currentglobalneuron = currentglobalneuron -> nextneuron;
+    }
+    currentgloballayer = currentgloballayer -> nextlayer;
   }
 }
 
@@ -662,9 +725,10 @@ void AggregationModel(FederatedLearning * clientmodel){
 
   FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
 
-  FederationAveraging(federatedlearninginstance->nodecontrol->neuralnetwork,
+  federatedlearninginstance->globalmodelstatus=0;
+
+  FederatedAveragingSum(federatedlearninginstance->nodecontrol->neuralnetwork,
                   clientmodel->neuralnetwork,
-                  federatedlearninginstance->trainingscounter,
                   clientmodel->trainingscounter);
                   
   federatedlearninginstance->trainingscounter += clientmodel->trainingscounter;
@@ -672,25 +736,57 @@ void AggregationModel(FederatedLearning * clientmodel){
   ClientNode *currentclientnode =  federatedlearninginstance->nodecontrol->firstclientnode;
   
   while (currentclientnode!=NULL){
-    printf("%d %d",federatedlearninginstance->nodecontrol->currentinteraction,currentclientnode->interaction);
+    //printf("%d %d",federatedlearninginstance->nodecontrol->currentinteraction,currentclientnode->interaction);
     if(federatedlearninginstance->nodecontrol->currentinteraction==currentclientnode->interaction){
+      federatedlearninginstance->globalmodelstatus=1;
+      
       return;
     }
     currentclientnode = currentclientnode->nextclientnode;
   }
-
+  //calculate the final weight value and set 0 the global training counter
+  FederatedAveraging(federatedlearninginstance->nodecontrol->neuralnetwork,federatedlearninginstance->trainingscounter);
+  federatedlearninginstance->trainingscounter = 0;
+  
+  //free the global neural network and copy the neuralnetwork to the global one
   freeNeuralNetwork(federatedlearninginstance->neuralnetwork);
   federatedlearninginstance->neuralnetwork = CopyNeuralNetwork(federatedlearninginstance->nodecontrol->neuralnetwork);
+  // set 0 the neural network
+  SetNeuralNetworkZeroWeightValue(federatedlearninginstance->nodecontrol->neuralnetwork);
 
   PerformanceMetrics(federatedlearninginstance->neuralnetwork,30,0.5);
   federatedlearninginstance->nodecontrol->currentinteraction++;
+  federatedlearninginstance->globalmodelstatus=1;
+
+}
+
+float Accuracy(int truepositive,int truenegative,int falsepositive,int falsenegative){
+  return (float)(truenegative+truepositive)/(truenegative+truepositive+falsenegative+falsepositive);
+}
+
+float Precision(int truepositive,int falsepositive){
+  return (float)truepositive/(truepositive+falsepositive);
+}
+
+float Recall(int truepositive,int falsenegative){
+  return (float)truepositive/(truepositive+falsenegative);
+}
+
+float Specificity(int truenegative,int falsepositive){
+  return (float)truenegative/(truenegative+falsepositive);
+}
+
+float F1Score(int truepositive,int falsepositive,int falsenegative){
+  return 2*(float)(Precision(truepositive,falsepositive) * 
+                  Recall(truepositive,falsenegative))/(
+                  Precision(truepositive,falsepositive) + 
+                  Recall(truepositive,falsenegative));
 }
 
 void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold){
   
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
-  float Precision=0, Recall=0, Accuracy=0,Specificity=0,F1Score=0;
   int total=0,truepositive=0,falsepositive=0,truenegative=0,falsenegative=0;
   Layer * currentlayer = neuralnetwork -> firstlayer;
   Neuron * currentneuron = currentlayer -> firstneuron;
@@ -762,17 +858,10 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
   }
 
   fclose(file);
-
-      printf("total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",total,truepositive,truenegative,falsepositive,falsenegative);
-
-      Accuracy = (float)(truenegative+truepositive)/(truenegative+truepositive+falsenegative+falsepositive);
-      Precision = (float)truepositive/(truepositive+falsepositive);
-      Recall =(float)truepositive/(truepositive+falsenegative);
-      Specificity = (float)truenegative/(truenegative+falsepositive);
-      F1Score = 2*(float)(Precision * Recall)/(Precision + Recall);
-      printf("Accuracy: %.2f\n",Accuracy);
-      printf("Precision: %.2f\n",Precision);
-      printf("Recall: %.2f\n",Recall);
-      printf("Specificity: %.2f\n",Specificity);
-      printf("F1-Score: %.2f\n",F1Score);
+  printf("total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",total,truepositive,truenegative,falsepositive,falsenegative);
+  printf("Accuracy: %.2f\n",(float)(truenegative+truepositive)/(truenegative+truepositive+falsenegative+falsepositive));
+  printf("Precision: %.2f\n",(float)truepositive/(truepositive+falsepositive));
+  printf("Recall: %.2f\n",(float)truepositive/(truepositive+falsenegative));
+  printf("Specificity: %.2f\n",(float)truenegative/(truenegative+falsepositive));
+  //printf("F1-Score: %.2f\n",F1Score(truepositive,falsepositive,falsenegative));
 }

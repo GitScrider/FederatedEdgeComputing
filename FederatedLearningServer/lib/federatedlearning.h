@@ -21,6 +21,11 @@
 #define L1 1
 #define L2 2
 
+//weight value
+#define WEIGHT_VALUE_ZERO 0
+#define WEIGHT_VALUE_RANDOM 1
+#define WEIGHT_VALUE_HALF 2
+
 //////////
 
 typedef struct Weight {
