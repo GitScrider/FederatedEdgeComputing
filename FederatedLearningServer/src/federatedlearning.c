@@ -631,22 +631,23 @@ void setFederatedLearningGlobalModel() {
 
   InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY,WEIGHT_VALUE_RANDOM);
   
-  federatedLearningInstance->neuralnetwork->percentualtraining = 120;
+  federatedLearningInstance->neuralnetwork->percentualtraining = 40;
   federatedLearningInstance->neuralnetwork->epoch = 8;
   federatedLearningInstance->neuralnetwork->alpha=0.001;
   federatedLearningInstance->neuralnetwork->regularization=L2;
   federatedLearningInstance->neuralnetwork->lambda =0.01;
 
-  federatedLearningInstance->nodecontrol->interactioncycle=10;
-  federatedLearningInstance->nodecontrol->clientnodes=1;
+  federatedLearningInstance->nodecontrol->interactioncycle=12;
+  federatedLearningInstance->nodecontrol->clientnodes=3;
+  federatedLearningInstance->nodecontrol->clientnodesregistered=0;
   InitializeNeuralNetWork(federatedLearningInstance->nodecontrol->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY,WEIGHT_VALUE_ZERO);
   federatedLearningInstance->nodecontrol->neuralnetwork->alpha=0.001;
   federatedLearningInstance->nodecontrol->neuralnetwork->epoch = 8;
   federatedLearningInstance->nodecontrol->neuralnetwork->regularization=L2;
   federatedLearningInstance->nodecontrol->neuralnetwork->lambda =0.01;
-  federatedLearningInstance->nodecontrol->neuralnetwork->percentualtraining = 120;
+  federatedLearningInstance->nodecontrol->neuralnetwork->percentualtraining = 40;
 
-  federatedLearningInstance->globalmodelstatus=1;
+  federatedLearningInstance->globalmodelstatus=0;
 
   printf("Neural Network Compiled!\n");
 
@@ -723,9 +724,14 @@ void SetNeuralNetworkZeroWeightValue(NeuralNetwork *globalneuralnetwork){
 
 void AggregationModel(FederatedLearning * clientmodel){
 
-  FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
 
+  FederatedLearning * federatedlearninginstance = getFederatedLearningInstance();
   federatedlearninginstance->globalmodelstatus=0;
+  
+  if(federatedlearninginstance->nodecontrol->currentinteraction>= federatedlearninginstance->nodecontrol->interactioncycle){
+    printf("The application reached the max interation\n");
+    return;
+  }
 
   FederatedAveragingSum(federatedlearninginstance->nodecontrol->neuralnetwork,
                   clientmodel->neuralnetwork,
@@ -735,6 +741,8 @@ void AggregationModel(FederatedLearning * clientmodel){
 
   ClientNode *currentclientnode =  federatedlearninginstance->nodecontrol->firstclientnode;
   
+
+  //check if all nodes sent the local model
   while (currentclientnode!=NULL){
     //printf("%d %d",federatedlearninginstance->nodecontrol->currentinteraction,currentclientnode->interaction);
     if(federatedlearninginstance->nodecontrol->currentinteraction==currentclientnode->interaction){
@@ -744,6 +752,11 @@ void AggregationModel(FederatedLearning * clientmodel){
     }
     currentclientnode = currentclientnode->nextclientnode;
   }
+
+  printf("Calculating the new global model");
+
+  federatedlearninginstance->globalmodelstatus=0;
+
   //calculate the final weight value and set 0 the global training counter
   FederatedAveraging(federatedlearninginstance->nodecontrol->neuralnetwork,federatedlearninginstance->trainingscounter);
   federatedlearninginstance->trainingscounter = 0;
@@ -751,9 +764,9 @@ void AggregationModel(FederatedLearning * clientmodel){
   //free the global neural network and copy the neuralnetwork to the global one
   freeNeuralNetwork(federatedlearninginstance->neuralnetwork);
   federatedlearninginstance->neuralnetwork = CopyNeuralNetwork(federatedlearninginstance->nodecontrol->neuralnetwork);
+
   // set 0 the neural network
   SetNeuralNetworkZeroWeightValue(federatedlearninginstance->nodecontrol->neuralnetwork);
-
   PerformanceMetrics(federatedlearninginstance->neuralnetwork,30,0.5);
   federatedlearninginstance->nodecontrol->currentinteraction++;
   federatedlearninginstance->globalmodelstatus=1;
@@ -859,9 +872,11 @@ void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,f
 
   fclose(file);
   printf("total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",total,truepositive,truenegative,falsepositive,falsenegative);
-  printf("Accuracy: %.2f\n",(float)(truenegative+truepositive)/(truenegative+truepositive+falsenegative+falsepositive));
-  printf("Precision: %.2f\n",(float)truepositive/(truepositive+falsepositive));
-  printf("Recall: %.2f\n",(float)truepositive/(truepositive+falsenegative));
-  printf("Specificity: %.2f\n",(float)truenegative/(truenegative+falsepositive));
-  //printf("F1-Score: %.2f\n",F1Score(truepositive,falsepositive,falsenegative));
+  printf("Accuracy: %.2f\n",Accuracy(truepositive,truenegative,falsepositive,falsenegative));
+  printf("Precision: %.2f\n",Precision(truepositive,falsepositive));
+  printf("Recall: %.2f\n",Recall(truepositive,falsenegative));
+  printf("Specificity: %.2f\n",Specificity(truenegative,falsepositive));
+  printf("F1-Score: %.2f\n",F1Score(truepositive,falsepositive,falsenegative));
+
+
 }

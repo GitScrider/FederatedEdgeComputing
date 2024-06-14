@@ -94,29 +94,35 @@ void handle_post_globalmodel(int client_socket, const char *request_body) {
 
 void handle_get_checkmodelstatus(int client_socket,char *ip_addr){
     FederatedLearning *FederatedLearningInstance = getFederatedLearningInstance();
-    //char *response_str = "{\"status\":0}";
+
+    //printf("%s cheking model status\n", ip_addr);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "status", 0);
 
-    if(FederatedLearningInstance->nodecontrol->currentinteraction!=FederatedLearningInstance->nodecontrol->interactioncycle){
+    int registered = 0;
 
-        if(FederatedLearningInstance->nodecontrol->clientnodesregistered==FederatedLearningInstance->nodecontrol->clientnodes){
+    ClientNode *currentclientnode =  FederatedLearningInstance->nodecontrol->firstclientnode;
+    while(currentclientnode!=NULL){
+        if(strcmp(currentclientnode->ip_id,ip_addr)==0){
+            //printf("Node %s is registered\n",currentclientnode->ip_id);
+            registered = 1;
+            break;
+        }
+        currentclientnode = currentclientnode->nextclientnode;
+    }
+
+    //printf("clientnodesregistered %d clientnodes %d registered %d \n",FederatedLearningInstance->nodecontrol->clientnodesregistered,FederatedLearningInstance->nodecontrol->clientnodes,registered);
+
+    if(FederatedLearningInstance->nodecontrol->clientnodesregistered==FederatedLearningInstance->nodecontrol->clientnodes && registered){
+    //printf("nodeinteraction %d currentinteraction %d globalmodelstatus %d \n",currentclientnode->interaction,FederatedLearningInstance->nodecontrol->currentinteraction,FederatedLearningInstance->globalmodelstatus);
             
-            ClientNode *currentclientnode =  FederatedLearningInstance->nodecontrol->firstclientnode;
-            while(currentclientnode!=NULL){
-                if(strcmp(currentclientnode->ip_id,ip_addr)==0){
-                    break;
-                }
-            }
-            if(currentclientnode->interaction==FederatedLearningInstance->nodecontrol->currentinteraction
-            && FederatedLearningInstance->globalmodelstatus){
-                cJSON *status_item = cJSON_GetObjectItem(root, "status");
-                    if (status_item != NULL) {
-                        cJSON_SetNumberValue(status_item, 1);
-                    } 
-            }
-
+        if(currentclientnode->interaction==FederatedLearningInstance->nodecontrol->currentinteraction && FederatedLearningInstance->globalmodelstatus){
+            //printf("Same interaction and global modal 1\n");
+            cJSON *status_item = cJSON_GetObjectItem(root, "status");
+            if (status_item != NULL) {
+                cJSON_SetNumberValue(status_item, 1);
+            } 
         }
     }
 
@@ -184,6 +190,10 @@ void handle_get_noderegister(int client_socket,char *ip_addr){
                 fedLearninginstance->nodecontrol->lastclientnode->nextclientnode = clientnode;
                 clientnode->previousclientnode = fedLearninginstance->nodecontrol->lastclientnode;
                 fedLearninginstance->nodecontrol->lastclientnode = clientnode;
+
+                fedLearninginstance->nodecontrol->clientnodesregistered++;
+
+
                 response_str = "{\"status\":\"added\"}";
                 printf("Client node Added\n");
             }
@@ -194,6 +204,7 @@ void handle_get_noderegister(int client_socket,char *ip_addr){
     if(fedLearninginstance->nodecontrol->clientnodesregistered==fedLearninginstance->nodecontrol->clientnodes){
         fedLearninginstance->globalmodelstatus=1;
     }
+    printf("client nodes registered %d client nodes %d\n",fedLearninginstance->nodecontrol->clientnodesregistered,fedLearninginstance->nodecontrol->clientnodes);
     printf("Global Model Status %d\n", fedLearninginstance->globalmodelstatus);
 
     const char *header = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n";

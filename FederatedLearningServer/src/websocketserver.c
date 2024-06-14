@@ -153,7 +153,6 @@ static int callback_echo(struct lws *wsi, enum lws_callback_reasons reason, void
     
     switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:  
-            printf("Connection established\n");
             break;
 
         case LWS_CALLBACK_RECEIVE:
