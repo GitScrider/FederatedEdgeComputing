@@ -8,86 +8,78 @@
 #include "espconfiguration.h"
 #include "httpclient.h"
 #include "websocketclient.h"
-//#include "websocketclient.h"
 #include "federatedlearning.h"
 #include "JSONConverter.h"
-
 #include "esp_spiffs.h"
 
-//#include "esp_websocket_client.h"
+void brink_error_led(int blink){
 
-
-
-
-
-// static void websocket_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
-// {
-//     esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)event_data;
-//     switch (event_id) {
-//     case WEBSOCKET_EVENT_CONNECTED:
-//         ESP_LOGI(TAG, "WEBSOCKET_EVENT_CONNECTED");
-//         break;
-//     case WEBSOCKET_EVENT_DATA:
-//         ESP_LOGW(TAG, "Received=%.*s\n", data->data_len, (char *)data->data_ptr);
-//         break;
-//     }
-// }
-
-// static void websocket_app_start(void)
-// {
-//     // Define the websocket connection
-//     esp_websocket_client_config_t websocket_cfg = {};
-//     websocket_cfg.uri = WEBSOCKET_SERVER;
-//     ESP_LOGI(TAG, "Connecting to %s ...", websocket_cfg.uri);
-
-//     // Connect to Websocket Server
-//     esp_websocket_client_handle_t client = esp_websocket_client_init(&websocket_cfg);
-//     esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
-
-
-//     esp_websocket_client_start(client);
-
-//     char *json_string = cJSON_Print(federatedLearningToJSON(getFederatedLearningInstance()));
-
-//     if (esp_websocket_client_is_connected(client)) {
-//         esp_websocket_client_send_text(client, json_string, strlen(json_string), portMAX_DELAY);
-//     }
-
-//     // Stop websocket connection
-//     esp_websocket_client_stop(client);
-//     ESP_LOGI(TAG, "Websocket Stopped");
-//     esp_websocket_client_destroy(client);
-// }
-
-void deep_learning(){
-    FederatedLearning *globalmodel = getglobalmodel();
-    replaceNeuralNetwork(globalmodel);
-    FederatedLearning *FDI = getFederatedLearningInstance();
-    PrintNeuralNetwork(FDI->neuralnetwork);
-    //NeuralNetworkTraining();
-
-    //cJSON* teste= federatedLearningToJSON(FDI);
-
-    char *json_string = cJSON_Print(federatedLearningToJSON(FDI));
-
-    // Verificar se a string JSON foi criada com sucesso
-    if (json_string == NULL) {
-        fprintf(stderr, "Erro ao criar a string JSON.\n");
-        return ;
+    for(int i=0;i<blink;i++){
+        gpio_set_level(LED_PIN_ERROR, 1);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        gpio_set_level(LED_PIN_ERROR, 0);
     }
-
-    // Imprimir a string JSON
-    printf("%s\n", json_string);
-
-    // Liberar a memória alocada para a string JSON
-    free(json_string);
-    
-
-    websocket_send_local_model();
-
 }
 
-void start_federated_learning(){
+void node_register(){
+    gpio_set_level(LED_PIN_SYNC, 1);
+    getregisternode();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    gpio_set_level(LED_PIN_SYNC, 0);
+}
+
+int global_model_status(){
+    int status=0;
+    gpio_set_level(LED_PIN_SYNC, 1);
+    status=getglobalmodelstatus();
+    vTaskDelay(50 / portTICK_PERIOD_MS);
+    gpio_set_level(LED_PIN_SYNC, 0);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
+    return status;
+}
+
+
+
+FederatedLearning *global_model(){
+    gpio_set_level(LED_PIN_SYNC, 1);
+    FederatedLearning *globalmodelinstance = getglobalmodel();
+    gpio_set_level(LED_PIN_SYNC, 0);
+    if(globalmodelinstance==NULL){
+        while (globalmodelinstance==NULL){
+            printf("Json null\n");
+            brink_error_led(2);
+            gpio_set_level(LED_PIN_SYNC, 1);
+            globalmodelinstance = getglobalmodel();     
+            gpio_set_level(LED_PIN_SYNC, 0);
+        }
+    }else{
+            printf("Json not null\n");
+        
+    }
+    
+    return globalmodelinstance;
+}
+
+void deep_learning(){
+
+    int ctrl=0;
+
+    while (1){
+        if(global_model_status()){
+            // FederatedLearning *globalmodelinstance = getglobalmodel();
+            // replaceNeuralNetwork(globalmodelinstance);
+            replaceNeuralNetwork(global_model());
+            NeuralNetworkTraining();
+            //FederatedLearning *FDI = getFederatedLearningInstance();
+            //PrintNeuralNetwork(FDI->neuralnetwork);
+            //PrintNeuralNetwork(FDI->neuralnetwork);
+            websocket_send_local_model();
+        }
+        ctrl++;
+    }
+}
+
+void start_federated_learning_system(){
 
     int startled = 0;
 
@@ -98,21 +90,17 @@ void start_federated_learning(){
     
     gpio_set_level(LED_PIN_ERROR, 0);
     gpio_set_level(LED_PIN_SYNC, 0);
-
-
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-
     while (gpio_get_level(BUTTON_PIN)){
         startled = ~startled;
         gpio_set_level(LED_PIN_WORKING, startled);
         vTaskDelay(250 / portTICK_PERIOD_MS);
     }
     gpio_set_level(LED_PIN_WORKING, 1);
-
 }
 
 void app_main(void){
-    start_federated_learning();
+    start_federated_learning_system();
+    node_register();
     deep_learning();
-    //printf("%d\n",getglobalmodelstatus());
 }

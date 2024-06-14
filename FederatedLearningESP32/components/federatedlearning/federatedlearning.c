@@ -164,10 +164,13 @@ void freeLayer(Layer *layer) {
     }
 }
 
-void freeNeuralNetwork(NeuralNetwork neuralnetwork) {
-      //printf("teste 0");
-    
-    Layer *currentlayer = neuralnetwork.firstlayer;
+void freeNeuralNetwork(NeuralNetwork *neuralnetwork) {
+    //printf("teste 0");
+    if(neuralnetwork==NULL){
+        return;   
+    }
+
+    Layer *currentlayer = neuralnetwork->firstlayer;
 
     while (currentlayer != NULL) {
       //printf("teste 1");
@@ -198,9 +201,17 @@ void freeNeuralNetwork(NeuralNetwork neuralnetwork) {
         currentlayer = nextlayer;
     }
 
-    //free(neuralnetwork);
+    free(neuralnetwork);
 }
 
+void freeFederatedLearning(FederatedLearning *federatedlearning){
+
+  if(federatedlearning==NULL){
+    return;
+  }
+  freeNeuralNetwork(federatedlearning->neuralnetwork);
+
+}
 void freeVector(float *vector) {
     if (vector != NULL) {
         free(vector);
@@ -585,7 +596,8 @@ void BackPropagation(NeuralNetwork *neuralnetwork, float *label, float alpha, in
 
 void NeuralNetworkTraining() {
 
-  NeuralNetwork * neuralnetwork = getFederatedLearningInstance()->neuralnetwork;
+  FederatedLearning *federatedlearninginstance = getFederatedLearningInstance();
+  NeuralNetwork * neuralnetwork = federatedlearninginstance->neuralnetwork;
 
   float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
   float label[neuralnetwork->lastlayer->neurons];
@@ -597,7 +609,7 @@ void NeuralNetworkTraining() {
   
   for (int TrainingCycle = 0; TrainingCycle < neuralnetwork->epoch; TrainingCycle++) {
 
-    file = fopen("/storage/dataset.csv", "r");
+    file = fopen("/storage/dataset3.csv", "r");
 
     if (file == NULL) {
         perror("Error when opening CSV file.");
@@ -656,6 +668,8 @@ void NeuralNetworkTraining() {
 
   }
 
+    federatedlearninginstance->trainingscounter =  federatedlearninginstance->neuralnetwork->epoch * federatedlearninginstance->neuralnetwork->percentualtraining;
+
     //fclose(arquivo);
 }
 
@@ -663,8 +677,9 @@ void NeuralNetworkTraining() {
 
 void replaceNeuralNetwork(FederatedLearning * newfederatedlearninginstance){
     FederatedLearning * federatedlearninginstance =  getFederatedLearningInstance();
-    federatedlearninginstance->neuralnetwork = newfederatedlearninginstance->neuralnetwork;
+    memcpy(federatedlearninginstance->neuralnetwork, newfederatedlearninginstance->neuralnetwork, sizeof(NeuralNetwork));
     federatedlearninginstance->trainingscounter=0;
+    //freeFederatedLearning(federatedlearninginstance);
 }
 
 void mergeNeuralNetwork(FederatedLearning * newfederatedlearninginstance){
