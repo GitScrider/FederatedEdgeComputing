@@ -1,0 +1,15 @@
+module NeuralNetworkFPGA(
+    input wire CLOCK_50,
+    output reg [7:0] LEDG
+);
+
+reg [24:0] counter;
+
+always @(posedge CLOCK_50) begin
+    counter <= counter + 1;
+    if (counter == 0) begin
+        LEDG <= ~LEDG;
+    end
+end
+
+endmodule
