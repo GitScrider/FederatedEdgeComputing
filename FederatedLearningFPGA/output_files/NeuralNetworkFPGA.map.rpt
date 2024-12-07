@@ -1,5 +1,5 @@
 Analysis & Synthesis report for NeuralNetworkFPGA
-Thu Sep 19 02:03:11 2024
+Wed Oct 30 18:51:05 2024
 Quartus Prime Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition
 
 
@@ -14,10 +14,11 @@ Quartus Prime Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition
   6. Analysis & Synthesis Resource Usage Summary
   7. Analysis & Synthesis Resource Utilization by Entity
   8. General Register Statistics
-  9. Inverted Register Statistics
+  9. Port Connectivity Checks: "ieee754_to_parts:ieeenumber_fragmented"
  10. Post-Synthesis Netlist Statistics for Top Partition
  11. Elapsed Time Per Partition
  12. Analysis & Synthesis Messages
+ 13. Analysis & Synthesis Suppressed Messages
 
 
 
@@ -44,16 +45,16 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                        ;
 +------------------------------------+------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Thu Sep 19 02:03:11 2024          ;
+; Analysis & Synthesis Status        ; Successful - Wed Oct 30 18:51:05 2024          ;
 ; Quartus Prime Version              ; 23.1std.1 Build 993 05/14/2024 SC Lite Edition ;
 ; Revision Name                      ; NeuralNetworkFPGA                              ;
 ; Top-level Entity Name              ; NeuralNetworkFPGA                              ;
 ; Family                             ; Cyclone IV E                                   ;
-; Total logic elements               ; 70                                             ;
-;     Total combinational functions  ; 70                                             ;
-;     Dedicated logic registers      ; 16                                             ;
-; Total registers                    ; 16                                             ;
-; Total pins                         ; 34                                             ;
+; Total logic elements               ; 0                                              ;
+;     Total combinational functions  ; 0                                              ;
+;     Dedicated logic registers      ; 0                                              ;
+; Total registers                    ; 0                                              ;
+; Total pins                         ; 76                                             ;
 ; Total virtual pins                 ; 0                                              ;
 ; Total memory bits                  ; 0                                              ;
 ; Embedded Multiplier 9-bit elements ; 0                                              ;
@@ -156,11 +157,10 @@ https://fpgasoftware.intel.com/eula.
 ; Maximum allowed            ; 16          ;
 ;                            ;             ;
 ; Average used               ; 1.00        ;
-; Maximum used               ; 16          ;
+; Maximum used               ; 1           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processors 2-16        ;   0.0%      ;
 +----------------------------+-------------+
 
 
@@ -169,52 +169,49 @@ https://fpgasoftware.intel.com/eula.
 +----------------------------------+-----------------+------------------------+---------------------------------------------------------------------------------+---------+
 ; File Name with User-Entered Path ; Used in Netlist ; File Type              ; File Name with Absolute Path                                                    ; Library ;
 +----------------------------------+-----------------+------------------------+---------------------------------------------------------------------------------+---------+
-; NeuralNetworkFPGA.v              ; yes             ; User Verilog HDL File  ; D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v ;         ;
+; NeuralNetworkFPGA.v              ; yes             ; User Verilog HDL File  ; C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v ;         ;
+; ieee745ALU.v                     ; yes             ; User Verilog HDL File  ; C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/ieee745ALU.v        ;         ;
 +----------------------------------+-----------------+------------------------+---------------------------------------------------------------------------------+---------+
 
 
-+------------------------------------------------------------+
-; Analysis & Synthesis Resource Usage Summary                ;
-+---------------------------------------------+--------------+
-; Resource                                    ; Usage        ;
-+---------------------------------------------+--------------+
-; Estimated Total logic elements              ; 70           ;
-;                                             ;              ;
-; Total combinational functions               ; 70           ;
-; Logic element usage by number of LUT inputs ;              ;
-;     -- 4 input functions                    ; 39           ;
-;     -- 3 input functions                    ; 23           ;
-;     -- <=2 input functions                  ; 8            ;
-;                                             ;              ;
-; Logic elements by mode                      ;              ;
-;     -- normal mode                          ; 70           ;
-;     -- arithmetic mode                      ; 0            ;
-;                                             ;              ;
-; Total registers                             ; 16           ;
-;     -- Dedicated logic registers            ; 16           ;
-;     -- I/O registers                        ; 0            ;
-;                                             ;              ;
-; I/O pins                                    ; 34           ;
-;                                             ;              ;
-; Embedded Multiplier 9-bit elements          ; 0            ;
-;                                             ;              ;
-; Maximum fan-out node                        ; SW[17]~input ;
-; Maximum fan-out                             ; 16           ;
-; Total fan-out                               ; 321          ;
-; Average fan-out                             ; 2.08         ;
-+---------------------------------------------+--------------+
++--------------------------------------------------------+
+; Analysis & Synthesis Resource Usage Summary            ;
++---------------------------------------------+----------+
+; Resource                                    ; Usage    ;
++---------------------------------------------+----------+
+;                                             ;          ;
+; Total combinational functions               ; 0        ;
+; Logic element usage by number of LUT inputs ;          ;
+;     -- 4 input functions                    ; 0        ;
+;     -- 3 input functions                    ; 0        ;
+;     -- <=2 input functions                  ; 0        ;
+;                                             ;          ;
+; Logic elements by mode                      ;          ;
+;     -- normal mode                          ; 0        ;
+;     -- arithmetic mode                      ; 0        ;
+;                                             ;          ;
+; Total registers                             ; 0        ;
+;     -- Dedicated logic registers            ; 0        ;
+;     -- I/O registers                        ; 0        ;
+;                                             ;          ;
+; I/O pins                                    ; 76       ;
+;                                             ;          ;
+; Embedded Multiplier 9-bit elements          ; 0        ;
+;                                             ;          ;
+; Maximum fan-out node                        ; CLOCK_50 ;
+; Maximum fan-out                             ; 1        ;
+; Total fan-out                               ; 76       ;
+; Average fan-out                             ; 0.50     ;
++---------------------------------------------+----------+
 
 
-+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-; Analysis & Synthesis Resource Utilization by Entity                                                                                                                                                                                           ;
-+---------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+-----------------------------------------------+-------------------+--------------+
-; Compilation Hierarchy Node      ; Combinational ALUTs ; Dedicated Logic Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name                           ; Entity Name       ; Library Name ;
-+---------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+-----------------------------------------------+-------------------+--------------+
-; |NeuralNetworkFPGA              ; 70 (0)              ; 16 (0)                    ; 0           ; 0            ; 0       ; 0         ; 34   ; 0            ; |NeuralNetworkFPGA                            ; NeuralNetworkFPGA ; work         ;
-;    |bin_to_7seg:b2s|            ; 7 (7)               ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |NeuralNetworkFPGA|bin_to_7seg:b2s            ; bin_to_7seg       ; work         ;
-;    |clock_counter:layercounter| ; 16 (16)             ; 16 (16)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |NeuralNetworkFPGA|clock_counter:layercounter ; clock_counter     ; work         ;
-;    |shiftreg_to_7seg:s2s|       ; 47 (47)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |NeuralNetworkFPGA|shiftreg_to_7seg:s2s       ; shiftreg_to_7seg  ; work         ;
-+---------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+-----------------------------------------------+-------------------+--------------+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Resource Utilization by Entity                                                                                                                                                            ;
++----------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+---------------------+-------------------+--------------+
+; Compilation Hierarchy Node ; Combinational ALUTs ; Dedicated Logic Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name ; Entity Name       ; Library Name ;
++----------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+---------------------+-------------------+--------------+
+; |NeuralNetworkFPGA         ; 0 (0)               ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 76   ; 0            ; |NeuralNetworkFPGA  ; NeuralNetworkFPGA ; work         ;
++----------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+---------------------+-------------------+--------------+
 Note: For table entries with two numbers listed, the numbers in parentheses indicate the number of resources of the given type used by the specific entity alone. The numbers listed outside of parentheses indicate the total resources of the given type used by the specific entity and all of its sub-entities in the hierarchy.
 
 
@@ -223,7 +220,7 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 +----------------------------------------------+-------+
 ; Statistic                                    ; Value ;
 +----------------------------------------------+-------+
-; Total registers                              ; 16    ;
+; Total registers                              ; 0     ;
 ; Number of registers using Synchronous Clear  ; 0     ;
 ; Number of registers using Synchronous Load   ; 0     ;
 ; Number of registers using Asynchronous Clear ; 0     ;
@@ -233,14 +230,15 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 +----------------------------------------------+-------+
 
 
-+--------------------------------------------------+
-; Inverted Register Statistics                     ;
-+----------------------------------------+---------+
-; Inverted Register                      ; Fan out ;
-+----------------------------------------+---------+
-; clock_counter:layercounter|out[0]      ; 7       ;
-; Total number of inverted registers = 1 ;         ;
-+----------------------------------------+---------+
++-------------------------------------------------------------------------------------------------------------------------------+
+; Port Connectivity Checks: "ieee754_to_parts:ieeenumber_fragmented"                                                            ;
++---------------------+--------+----------+-------------------------------------------------------------------------------------+
+; Port                ; Type   ; Severity ; Details                                                                             ;
++---------------------+--------+----------+-------------------------------------------------------------------------------------+
+; integer_part[31..4] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; fractional_part     ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; sign                ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
++---------------------+--------+----------+-------------------------------------------------------------------------------------+
 
 
 +-----------------------------------------------------+
@@ -248,18 +246,13 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 +-----------------------+-----------------------------+
 ; Type                  ; Count                       ;
 +-----------------------+-----------------------------+
-; boundary_port         ; 34                          ;
-; cycloneiii_ff         ; 16                          ;
-;     plain             ; 16                          ;
-; cycloneiii_lcell_comb ; 71                          ;
-;     normal            ; 71                          ;
-;         1 data inputs ; 1                           ;
-;         2 data inputs ; 8                           ;
-;         3 data inputs ; 23                          ;
-;         4 data inputs ; 39                          ;
+; boundary_port         ; 76                          ;
+; cycloneiii_lcell_comb ; 2                           ;
+;     normal            ; 2                           ;
+;         0 data inputs ; 2                           ;
 ;                       ;                             ;
-; Max LUT depth         ; 9.00                        ;
-; Average LUT depth     ; 5.85                        ;
+; Max LUT depth         ; 0.00                        ;
+; Average LUT depth     ; 0.00                        ;
 +-----------------------+-----------------------------+
 
 
@@ -278,46 +271,138 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition
-    Info: Processing started: Thu Sep 19 02:03:02 2024
+    Info: Processing started: Wed Oct 30 18:50:57 2024
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off NeuralNetworkFPGA -c NeuralNetworkFPGA
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 16 of the 16 processors detected
-Info (12021): Found 4 design units, including 4 entities, in source file neuralnetworkfpga.v
-    Info (12023): Found entity 1: shiftreg_to_7seg File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 1
-    Info (12023): Found entity 2: bin_to_7seg File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 32
-    Info (12023): Found entity 3: clock_counter File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
-    Info (12023): Found entity 4: NeuralNetworkFPGA File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 85
+Info (12021): Found 3 design units, including 3 entities, in source file neuralnetworkfpga.v
+    Info (12023): Found entity 1: shiftreg_to_7seg File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 1
+    Info (12023): Found entity 2: clock_counter File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 32
+    Info (12023): Found entity 3: NeuralNetworkFPGA File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 56
+Info (12021): Found 9 design units, including 9 entities, in source file output_files/processor.v
+    Info (12023): Found entity 1: multiplex File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 1
+    Info (12023): Found entity 2: control_unit File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 18
+    Info (12023): Found entity 3: program_counter File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 225
+    Info (12023): Found entity 4: arithmetic_logic_unit File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 253
+    Info (12023): Found entity 5: data_cache File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 289
+    Info (12023): Found entity 6: instruction_cache File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 320
+    Info (12023): Found entity 7: clock_control File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 344
+    Info (12023): Found entity 8: register_file File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 425
+    Info (12023): Found entity 9: processor File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 462
+Info (12021): Found 4 design units, including 4 entities, in source file output_files/neuralnetwork.v
+    Info (12023): Found entity 1: neuron File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetwork.v Line: 1
+    Info (12023): Found entity 2: neuron_input_layer File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetwork.v Line: 3
+    Info (12023): Found entity 3: neron_output_layer File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetwork.v Line: 5
+    Info (12023): Found entity 4: neural_network File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetwork.v Line: 7
+Info (12021): Found 3 design units, including 3 entities, in source file ieee745alu.v
+    Info (12023): Found entity 1: frac_to_7seg File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/ieee745ALU.v Line: 1
+    Info (12023): Found entity 2: bin_to_7seg File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/ieee745ALU.v Line: 49
+    Info (12023): Found entity 3: ieee754_to_parts File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/ieee745ALU.v Line: 79
+Critical Warning (10846): Verilog HDL Instantiation warning at Processor.v(555): instance has no name File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/Processor.v Line: 555
 Info (12127): Elaborating entity "NeuralNetworkFPGA" for the top level hierarchy
-Info (12128): Elaborating entity "clock_counter" for hierarchy "clock_counter:layercounter" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 112
-Info (12128): Elaborating entity "shiftreg_to_7seg" for hierarchy "shiftreg_to_7seg:s2s" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 117
-Info (10264): Verilog HDL Case Statement information at NeuralNetworkFPGA.v(8): all case item expressions in this case statement are onehot File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 8
-Info (12128): Elaborating entity "bin_to_7seg" for hierarchy "bin_to_7seg:b2s" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 125
-Info (286030): Timing-Driven Synthesis is running
+Warning (10034): Output port "HEX1" at NeuralNetworkFPGA.v(61) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+Warning (10034): Output port "HEX2" at NeuralNetworkFPGA.v(62) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+Warning (10034): Output port "HEX3" at NeuralNetworkFPGA.v(63) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+Warning (10034): Output port "HEX4" at NeuralNetworkFPGA.v(64) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+Warning (10034): Output port "HEX5" at NeuralNetworkFPGA.v(65) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+Warning (10034): Output port "HEX6" at NeuralNetworkFPGA.v(66) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+Warning (10034): Output port "HEX7" at NeuralNetworkFPGA.v(69) has no driver File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+Info (12128): Elaborating entity "ieee754_to_parts" for hierarchy "ieee754_to_parts:ieeenumber_fragmented" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 88
+Info (12128): Elaborating entity "bin_to_7seg" for hierarchy "bin_to_7seg:bt7s" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 91
+Warning (13024): Output pins are stuck at VCC or GND
+    Warning (13410): Pin "HEX0[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX0[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX0[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX0[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX0[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX0[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX0[6]" is stuck at VCC File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 60
+    Warning (13410): Pin "HEX1[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX1[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX1[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX1[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX1[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX1[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX1[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 61
+    Warning (13410): Pin "HEX2[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX2[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX2[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX2[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX2[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX2[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX2[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 62
+    Warning (13410): Pin "HEX3[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX3[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX3[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX3[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX3[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX3[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX3[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 63
+    Warning (13410): Pin "HEX4[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX4[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX4[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX4[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX4[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX4[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX4[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 64
+    Warning (13410): Pin "HEX5[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX5[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX5[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX5[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX5[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX5[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX5[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 65
+    Warning (13410): Pin "HEX6[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX6[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX6[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX6[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX6[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX6[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX6[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 66
+    Warning (13410): Pin "HEX7[0]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+    Warning (13410): Pin "HEX7[1]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+    Warning (13410): Pin "HEX7[2]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+    Warning (13410): Pin "HEX7[3]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+    Warning (13410): Pin "HEX7[4]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+    Warning (13410): Pin "HEX7[5]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+    Warning (13410): Pin "HEX7[6]" is stuck at GND File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 69
+Info (144001): Generated suppressed messages file C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetworkFPGA.map.smsg
 Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
-Warning (21074): Design contains 14 input pin(s) that do not drive logic
-    Warning (15610): No output dependent on input pin "CLOCK_50" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 86
-    Warning (15610): No output dependent on input pin "SW[4]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[5]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[6]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[7]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[8]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[9]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[10]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[11]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[12]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[13]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[14]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[15]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-    Warning (15610): No output dependent on input pin "SW[16]" File: D:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 87
-Info (21057): Implemented 104 device resources after synthesis - the final resource count might be different
+Warning (21074): Design contains 20 input pin(s) that do not drive logic
+    Warning (15610): No output dependent on input pin "CLOCK_50" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 57
+    Warning (15610): No output dependent on input pin "SW[0]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[1]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[2]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[3]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[4]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[5]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[6]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[7]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[8]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[9]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[10]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[11]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[12]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[13]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[14]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[15]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[16]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "SW[17]" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 58
+    Warning (15610): No output dependent on input pin "KEY0" File: C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/NeuralNetworkFPGA.v Line: 59
+Info (21057): Implemented 76 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 20 input pins
-    Info (21059): Implemented 14 output pins
-    Info (21061): Implemented 70 logic cells
-Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 16 warnings
-    Info: Peak virtual memory: 4842 megabytes
-    Info: Processing ended: Thu Sep 19 02:03:11 2024
-    Info: Elapsed time: 00:00:09
-    Info: Total CPU time (on all processors): 00:00:33
+    Info (21059): Implemented 56 output pins
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 87 warnings
+    Info: Peak virtual memory: 4733 megabytes
+    Info: Processing ended: Wed Oct 30 18:51:05 2024
+    Info: Elapsed time: 00:00:08
+    Info: Total CPU time (on all processors): 00:00:30
+
+
++------------------------------------------+
+; Analysis & Synthesis Suppressed Messages ;
++------------------------------------------+
+The suppressed messages can be found in C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetworkFPGA.map.smsg.
 
 

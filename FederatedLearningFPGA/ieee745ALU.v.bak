@@ -1,0 +1,34 @@
+module ieee754_to_parts (
+    input [31:0] ieee754,             // Entrada: número em IEEE 754
+    output reg [31:0] integer_part,    // Saída: parte inteira em binário
+    output reg [31:0] fractional_part,  // Saída: parte fracionada em binário
+    output reg sign                    // Saída: bit de sinal (0 para positivo, 1 para negativo)
+);
+
+    always @(*) begin
+        // Extrair o sinal
+        sign = ieee754[31];
+
+        // Extrair o expoente
+        reg [7:0] exponent = ieee754[30:23] - 8'b01111111; // Subtrai o bias (127)
+
+        // Extrair a mantissa (com bit implícito)
+        reg [23:0] mantissa = {1'b1, ieee754[22:0]}; // Adiciona o bit implícito
+
+        // Calcular a parte inteira e a parte fracionada
+        integer_part = 0;
+        fractional_part = 0;
+
+        // Calcular a parte inteira
+        if (exponent >= 0) begin
+            integer_part = mantissa << exponent; // Desloca para a esquerda para calcular a parte inteira
+        end else begin
+            // Para expoentes negativos, a parte inteira será zero
+            integer_part = 0;
+        end
+
+        // Calcular a parte fracionada
+        fractional_part = mantissa >> (8 - exponent); // Ajusta para obter a parte fracionada
+    end
+
+endmodule

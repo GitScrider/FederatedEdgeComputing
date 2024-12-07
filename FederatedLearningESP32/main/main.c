@@ -38,8 +38,6 @@ int global_model_status(){
     return status;
 }
 
-
-
 FederatedLearning *global_model(){
     gpio_set_level(LED_PIN_SYNC, 1);
     FederatedLearning *globalmodelinstance = getglobalmodel();
@@ -66,22 +64,28 @@ void deep_learning(){
 
     while (1){
         if(global_model_status()){
-            // FederatedLearning *globalmodelinstance = getglobalmodel();
-            // replaceNeuralNetwork(globalmodelinstance);
             replaceNeuralNetwork(global_model());
             NeuralNetworkTraining();
-            //FederatedLearning *FDI = getFederatedLearningInstance();
-            //PrintNeuralNetwork(FDI->neuralnetwork);
-            //PrintNeuralNetwork(FDI->neuralnetwork);
             websocket_send_local_model();
         }
         ctrl++;
     }
 }
 
-void start_federated_learning_system(){
 
-    int startled = 0;
+void deep_learning_test(){
+    if(global_model_status()){
+        FederatedLearning *globalmodelinstance = getglobalmodel();
+        replaceNeuralNetwork(globalmodelinstance);
+        PrintNeuralNetwork(globalmodelinstance->neuralnetwork);
+        NeuralNetworkTraining();
+        //FederatedLearning *FDI = getFederatedLearningInstance();
+        //PrintNeuralNetwork(FDI->neuralnetwork);
+    }
+}
+
+
+void start_esp32_configuration(){
 
     UARTConfiguration();
     GPIOConfiguration();
@@ -91,6 +95,11 @@ void start_federated_learning_system(){
     gpio_set_level(LED_PIN_ERROR, 0);
     gpio_set_level(LED_PIN_SYNC, 0);
     vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+}
+
+void start_federated_learning_system_button(){
+    int startled = 0;
     while (gpio_get_level(BUTTON_PIN)){
         startled = ~startled;
         gpio_set_level(LED_PIN_WORKING, startled);
@@ -100,7 +109,8 @@ void start_federated_learning_system(){
 }
 
 void app_main(void){
-    start_federated_learning_system();
+    start_esp32_configuration();
+    start_federated_learning_system_button();
     node_register();
-    deep_learning();
+    deep_learning_test();
 }
