@@ -1,15 +1,13 @@
 module multiplexer_parametrized #(
-    parameter NUM_INPUTS = 4,   // Número de entradas do MUX (default: 4)
-    parameter DATA_WIDTH = 32  // Largura de cada entrada (default: 32 bits)
+    parameter NUM_INPUTS = 4,   
+    parameter DATA_WIDTH = 32  
 )(
-    input [NUM_INPUTS*DATA_WIDTH-1:0] in,  // Entradas achatadas (N entradas de 32 bits)
-    input [$clog2(NUM_INPUTS)-1:0] sel,    // Sinal de seleção (log2(NUM_INPUTS) bits)
-    output reg [DATA_WIDTH-1:0] out        // Saída do MUX
+    input [NUM_INPUTS*DATA_WIDTH-1:0] in,  
+    input [$clog2(NUM_INPUTS)-1:0] sel,    
+    output reg [DATA_WIDTH-1:0] out        
 );
 
-    // Lógica do MUX
     always @(*) begin
-        // Seleciona o bloco correspondente ao índice do seletor
         out = in[sel*DATA_WIDTH +: DATA_WIDTH];
     end
 
@@ -24,45 +22,48 @@ module register(
 
     always @(posedge clock) begin
         if (reset) begin
-            register <= 32'b0; // Zera o registrador no reset
+            register <= 32'b0; 
         end else begin
-            register <= data; // Carrega o dado na borda do clock
+            register <= data; 
         end
     end
 
 endmodule
 
-
 module memory_parametrized #(
-    parameter WORDS = 256 // Número de palavras na memória (default: 256 palavras)
+    parameter WORDS = 256 
 )(
-    input clock,             // Clock
-    input reset,             // Reset
-    input write_enable,      // Sinal para habilitar escrita
-    input [31:0] write_data, // Dados para escrita
-    input [$clog2(WORDS)-1:0] address, // Endereço da memória
-    output reg [31:0] read_data // Dados lidos da memória
+    input clock,             
+    input reset,             
+    input write_enable,      
+    input [31:0] write_data, 
+    input [$clog2(WORDS)-1:0] address, 
+    output reg [31:0] read_data 
 );
 
-    // Declaração da memória (array de palavras de 32 bits)
     reg [31:0] mem [0:WORDS-1];
 
-    // Reset: Zera toda a memória (opcional)
     integer i;
+
+    initial begin
+        for (i = 0; i < WORDS; i = i + 1) begin
+            mem[i] <= 32'h3f000000;
+        end
+    end
+
     always @(posedge clock) begin
         if (reset) begin
             for (i = 0; i < WORDS; i = i + 1) begin
                 mem[i] <= 32'b0;
             end
         end else if (write_enable) begin
-            mem[address] <= write_data; // Escreve na memória
+            mem[address] <= write_data; 
         end
     end
 
-    // Leitura da memória
-    always @(posedge clock) begin
+    always @(address) begin
         if (!write_enable) begin
-            read_data <= mem[address]; // Lê a memória
+            read_data <= mem[address]; 
         end
     end
 
