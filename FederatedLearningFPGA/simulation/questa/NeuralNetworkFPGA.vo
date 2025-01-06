@@ -17,7 +17,7 @@
 // PROGRAM "Quartus Prime"
 // VERSION "Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition"
 
-// DATE "10/30/2024 18:51:27"
+// DATE "12/13/2024 02:13:32"
 
 // 
 // Device: Altera EP4CE115F29C7 Package FBGA780
@@ -306,7 +306,7 @@ defparam \HEX0[5]~output .open_drain_output = "false";
 
 // Location: IOOBUF_X115_Y69_N2
 cycloneive_io_obuf \HEX0[6]~output (
-	.i(vcc),
+	.i(gnd),
 	.oe(vcc),
 	.seriesterminationcontrol(16'b0000000000000000),
 	.devoe(devoe),

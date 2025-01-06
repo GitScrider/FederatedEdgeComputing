@@ -122,7 +122,7 @@ void SPIFFSConfiguration(){
  //Monta o sistema de arquivos SPIFFS
     esp_vfs_spiffs_conf_t conf = {
         .base_path = "/storage",
-        .partition_label = NULL,
+        .partition_label = "storage",
         .max_files = 5,
         .format_if_mount_failed = true
     };

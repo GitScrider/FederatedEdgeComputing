@@ -1,5 +1,5 @@
 Fitter report for NeuralNetworkFPGA
-Wed Oct 30 18:51:18 2024
+Fri Dec 13 02:13:22 2024
 Quartus Prime Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition
 
 
@@ -59,7 +59,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Fitter Summary                                                                      ;
 +------------------------------------+------------------------------------------------+
-; Fitter Status                      ; Successful - Wed Oct 30 18:51:18 2024          ;
+; Fitter Status                      ; Successful - Fri Dec 13 02:13:22 2024          ;
 ; Quartus Prime Version              ; 23.1std.1 Build 993 05/14/2024 SC Lite Edition ;
 ; Revision Name                      ; NeuralNetworkFPGA                              ;
 ; Top-level Entity Name              ; NeuralNetworkFPGA                              ;
@@ -151,7 +151,7 @@ https://fpgasoftware.intel.com/eula.
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processors 2-16        ;   0.3%      ;
+;     Processors 2-16        ;   0.2%      ;
 +----------------------------+-------------+
 
 
@@ -1755,9 +1755,9 @@ Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:01
 Info (144001): Generated suppressed messages file C:/Development/FederatedEdgeComputing/FederatedLearningFPGA/output_files/NeuralNetworkFPGA.fit.smsg
 Info: Quartus Prime Fitter was successful. 0 errors, 6 warnings
     Info: Peak virtual memory: 6669 megabytes
-    Info: Processing ended: Wed Oct 30 18:51:18 2024
+    Info: Processing ended: Fri Dec 13 02:13:22 2024
     Info: Elapsed time: 00:00:12
-    Info: Total CPU time (on all processors): 00:00:51
+    Info: Total CPU time (on all processors): 00:00:38
 
 
 +----------------------------+

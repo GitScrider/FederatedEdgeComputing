@@ -294,7 +294,7 @@ module ieee754_divider #( parameter ITER = 4, parameter USE_ENABLE = 0) (
 endmodule
 
 
-module ieee754_natural_exponential #(parameter ITER = 4)(
+module ieee754_natural_exponential #(parameter ITER = 10)(
     input clock, 
     input [31:0] A, 
     output reg [31:0] result

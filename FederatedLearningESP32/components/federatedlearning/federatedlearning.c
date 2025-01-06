@@ -609,7 +609,7 @@ void NeuralNetworkTraining() {
   
   for (int TrainingCycle = 0; TrainingCycle < neuralnetwork->epoch; TrainingCycle++) {
 
-    file = fopen("/storage/dataset3.csv", "r");
+    file = fopen("/storage/dataset.csv", "r");
 
     if (file == NULL) {
         perror("Error when opening CSV file.");

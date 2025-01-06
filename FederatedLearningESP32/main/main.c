@@ -12,6 +12,18 @@
 #include "JSONConverter.h"
 #include "esp_spiffs.h"
 
+
+#include "driver/i2c.h"
+#include "esp_system.h"
+
+
+// Defina o endereço I2C do INA219 (geralmente é 0x40)
+#define INA219_ADDR 0x40
+
+// Pinos I2C
+#define SDA_PIN 21
+#define SCL_PIN 22
+
 void brink_error_led(int blink){
 
     for(int i=0;i<blink;i++){
