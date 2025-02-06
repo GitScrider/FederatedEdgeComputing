@@ -188,6 +188,14 @@ For debugging and monitoring, a button and three LEDs were integrated into the s
 [ESP32 Hardware Setup](ProjectImages/hardwaresetup.png)
 
 
+## Future Works
+
+Future work includes:
+
+- Enhancing the usability of the framework for both local training on a single node and federated learning.
+- Improving compatibility with Arduino microcontrollers and their IDE platform.
+- Developing and refining the neural network architecture for FPGA to accelerate training on microcontrollers, with the project stored in the **FederatedLearningFPGA** Folder.
+
 ## 🤝 Contributions
 
 We welcome contributions! If you’d like to suggest improvements, please open an issue or submit a pull request.
