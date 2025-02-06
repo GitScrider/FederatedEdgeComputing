@@ -111,17 +111,16 @@ Once initialized, the server launches both HTTP and WebSocket services in separa
    - **`data` Folder**:
      - **`dataset.csv`**: Iris flower dataset with 120 examples for training.
      - **`dataset1.csv`, `dataset2.csv`, `dataset3.csv`**: Contain the same examples as `dataset.csv`, but divided into 40 examples for testing federated training.
-
-### 3. **Components**
-   - **`cJSON` Folder**: Files responsible for converting the model between JSON and C structure.
-   - **`espwebsocketclient` Folder**: Files for WebSocket configuration for the client.
-   - **`federatedlearning` Folder**: Files for federated training model configuration.
-     - The file is read from the ESP32 `store` partition in line 612 of `federatedlearning.c`:
-       ```c
-       file = fopen("/storage/dataset.csv", "r");
-       ```
-   - **`http` Folder**: Contains the configurations for the server's HTTP endpoints.
-   - **`websocket` Folder**: Contains the configuration to open a WebSocket connection and send the model to the server.
+   - **`Compoenents` Folder**:
+      - **`cJSON` Folder**: Files responsible for converting the model between JSON and C structure.
+      - **`espwebsocketclient` Folder**: Files for WebSocket configuration for the client.
+      - **`federatedlearning` Folder**: Files for federated training model configuration.
+      - The file is read from the ESP32 `store` partition in line 612 of `federatedlearning.c`:
+         ```c
+         file = fopen("/storage/dataset.csv", "r");
+         ```
+      - **`http` Folder**: Contains the configurations for the server's HTTP endpoints.
+      - **`websocket` Folder**: Contains the configuration to open a WebSocket connection and send the model to the server.
 
 
 ## 🛠️ Setup
@@ -131,17 +130,18 @@ Once initialized, the server launches both HTTP and WebSocket services in separa
 - ESP32 Dev Kit
 - Raspberry Pi (or another Linux device) as the central server
 - ESP-IDF for firmware compilation
+- Install de CP210X driver in **`CP210X driver` Folder** for the microcontroller flash comunication (If Necessary)
 
 ### 2️⃣ Server Setup
 
 1. Navigate to the server directory and compile:
    ```sh
    cd FederatedLearningServer/
-   make all
+   make build
    ```
 2. Run the server:
    ```sh
-   ./make all
+   make run
    ```
 3. To verify server-client communication, send a test request using Postman or curl:
 
@@ -154,8 +154,8 @@ curl -X POST http://<SERVER_IP>:8888/api/testpost \
 ### 3️⃣ ESP32 Setup
 
 1. Install ESP-IDF. 
-    windows: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html
-   --> Linux: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/linux-macos-setup.html
+    - **`Windows`**: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html
+   - **`Linux`**: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/linux-macos-setup.html
 
 2. Configure Wi-Fi credentials in `config.h`:
    ```c
