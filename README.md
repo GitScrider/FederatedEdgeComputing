@@ -154,7 +154,7 @@ curl -X POST http://<SERVER_IP>:8888/api/testpost \
 ### 3️⃣ ESP32 Setup
 
 1. Install ESP-IDF. 
-    - **`Windows`**: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html
+   - **`Windows`**: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html
    - **`Linux`**: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/linux-macos-setup.html
 
 2. Configure Wi-Fi credentials in `config.h`:
@@ -174,10 +174,10 @@ curl -X POST http://<SERVER_IP>:8888/api/testpost \
 5. Hardware configuration (optional)
 
 For debugging and monitoring, a button and three LEDs were integrated into the system in config.h:
---> Green LED Blinks during initialization and stays on during operation.
---> Button: Initiates the application after initial configuration, streamlining user interaction.
---> Blue LED: Indicates communication with the server via HTTP or WebSocket.
---> Red LED: Signals errors (e.g., initialization, communication, or training failure).
+-Green LED Blinks during initialization and stays on during operation.
+-Button: Initiates the application after initial configuration, streamlining user interaction.
+-Blue LED: Indicates communication with the server via HTTP or WebSocket.
+-Red LED: Signals errors (e.g., initialization, communication, or training failure).
 
    ```c
    #define LED_PIN_ERROR "12"
