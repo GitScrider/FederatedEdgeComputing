@@ -79,6 +79,8 @@ void deep_learning(){
             replaceNeuralNetwork(global_model());
             NeuralNetworkTraining();
             websocket_send_local_model();
+        }else{
+            break;
         }
         ctrl++;
     }
@@ -124,5 +126,5 @@ void app_main(void){
     start_esp32_configuration();
     start_federated_learning_system_button();
     node_register();
-    deep_learning_test();
+    deep_learning();
 }
