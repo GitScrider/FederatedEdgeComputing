@@ -248,7 +248,12 @@ module ieee754_divider #( parameter ITER = 4, parameter USE_ENABLE = 0) (
     // Controle de estados
     always @(posedge clock) begin
         //$display("  effective_enable: %d",effective_enable);
-        if (effective_enable) begin
+        if (A == 32'b0) begin
+            result = 32'b0;
+            divider_counter = 0;
+            index = 0;
+            clk = 0;
+        end else if (effective_enable) begin
             case (divider_counter)
                 3'b000: begin
                     //$display("  Start Div clock: %d",clk);
@@ -295,9 +300,11 @@ endmodule
 
 
 module ieee754_natural_exponential #(parameter ITER = 10)(
-    input clock, 
-    input [31:0] A, 
-    output reg [31:0] result
+    input clock,
+    input reset,
+    input [31:0] A,
+    output reg [31:0] result,
+    output reg done
 );
 
     integer index_fatorial,index_division,clk;
@@ -344,16 +351,33 @@ module ieee754_natural_exponential #(parameter ITER = 10)(
     );
 
     initial begin
-        
-        div_enable=0;
-        natural_exponential_counter=0;
+        div_enable = 0;
+        natural_exponential_counter = 0;
         natural_exponential_sum = 32'b00111111100000000000000000000000;
-
+        done = 0;
+        index_fatorial = 0;
+        index_division = 0;
+        clk = 1;
+        pontential_mul = 32'b00111111100000000000000000000000;
+        fatorial_count = 32'b0;
+        fatorial_mul = 32'b00111111100000000000000000000000;
     end
 
 
     always @(posedge clock) begin
-
+        if (reset) begin
+            div_enable = 0;
+            natural_exponential_counter = 0;
+            natural_exponential_sum = 32'b00111111100000000000000000000000;
+            done = 0;
+            index_fatorial = 0;
+            index_division = 0;
+            clk = 1;
+            pontential_mul = 32'b00111111100000000000000000000000;
+            fatorial_count = 32'b0;
+            fatorial_mul = 32'b00111111100000000000000000000000;
+            result = 0;
+        end else begin
         case (natural_exponential_counter)
             3'b000: begin
                 $display("State %d: A = %h ", natural_exponential_counter,A);
@@ -387,7 +411,9 @@ module ieee754_natural_exponential #(parameter ITER = 10)(
                 // $display("State: %d inA_D1 = %h | inB_D1 = %h -> D1 = %h",natural_exponential_counter,M1_D1,M2_D1,D1_A2);
                 // $display("State: %d: inA_D1 = %h | inB_D1 = %h -> A2 = %h",natural_exponential_counter,D1_A2,natural_exponential_sum,A2_OUT);
                 $display("clock: %d\n",clk);
+                $display("DEBUG: index_fatorial = %d, ITER = %d", index_fatorial, ITER);
                 if (index_fatorial<=ITER) begin
+                    $display("DEBUG: index_fatorial <= ITER, continuing loop");
                     
                     if(index_division<ITER*2) begin
 
@@ -396,7 +422,7 @@ module ieee754_natural_exponential #(parameter ITER = 10)(
                         index_division = index_division + 1;
 
                     end else begin 
-
+                        $display("DEBUG: index_division >= ITER*2, incrementing index_fatorial");
                         div_enable = 0;
 
                         // pontential_mul = M1_D1;
@@ -406,16 +432,18 @@ module ieee754_natural_exponential #(parameter ITER = 10)(
 
                         index_division=0;
                         index_fatorial = index_fatorial + 1;
+                        $display("DEBUG: index_fatorial incremented to %d", index_fatorial);
                         clk=clk+1;
                         natural_exponential_counter = natural_exponential_counter + 1;
 
                     end
                 end else begin
+                    $display("DEBUG: index_fatorial > ITER, computation complete!");
                     clk=clk+1;
                     result = A2_OUT;
+                    done = 1;
                     $display("State %d: clk = %d",natural_exponential_counter, clk+1);
-                    natural_exponential_counter=0;
-
+                    natural_exponential_counter = 3'b100; // go to idle
                 end
             end
             3'b011: begin
@@ -435,12 +463,20 @@ module ieee754_natural_exponential #(parameter ITER = 10)(
 
             end
 
+            3'b100: begin // idle state
+                done = 0;
+                // Remain idle until reset
+            end
 
             default: begin
                 $display("Default State: Natural exponential invalid state encountered.");
                 natural_exponential_counter=0;
             end
         endcase
+        if (done && natural_exponential_counter != 3'b010) begin
+            done = 0;
+        end
+    end // not reset
     end
 endmodule
 

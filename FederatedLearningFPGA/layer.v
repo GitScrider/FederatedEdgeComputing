@@ -52,7 +52,7 @@ module hidden_layer #(
 );
 
     hidden_neuron #(
-        .NUM_INPUTS(3)
+        .NUM_INPUTS(4)
     ) n0 (
         .clock(clock),
         .neuron_enable(layer_enable),
@@ -66,7 +66,7 @@ module hidden_layer #(
     );
 
     hidden_neuron #(
-        .NUM_INPUTS(3)
+        .NUM_INPUTS(4)
     ) n1 (
         .clock(clock),
         .neuron_enable(layer_enable),
@@ -80,7 +80,7 @@ module hidden_layer #(
     );
 
     hidden_neuron #(
-        .NUM_INPUTS(3)
+        .NUM_INPUTS(4)
     ) n2 (
         .clock(clock),
         .neuron_enable(layer_enable),
@@ -112,14 +112,14 @@ module output_softmax_layer #(
 
     wire [31:0] ss_n, ns1_ss,ns2_ss,ns3_ss;
 
-    softmax_sum #(.NUM_INPUTS(3)) ss (
+    softmax_sum #(.NUM_INPUTS(4)) ss (
         
-        .input_data({ns2_ss,ns2_ss,ns1_ss}),
+        .input_data({ns3_ss,ns2_ss,ns1_ss,32'h00000000}),
         .output_data(ss_n)
 
     );
 
-    softmax_neuron #(.NUM_INPUTS(3)) sn1 (
+    softmax_neuron #(.NUM_INPUTS(4)) sn1 (
 
         .clock(clock),
         .neuron_enable(layer_enable),
@@ -137,7 +137,7 @@ module output_softmax_layer #(
 
     );
 
-    softmax_neuron #(.NUM_INPUTS(3)) sn2 (
+    softmax_neuron #(.NUM_INPUTS(4)) sn2 (
 
         .clock(clock),
         .neuron_enable(layer_enable),
@@ -149,13 +149,13 @@ module output_softmax_layer #(
         .weight_memory_address(weight_memory_address),
         .neuron_state(layer_state),
 
-        .exp(ns1_ss), 
+        .exp(ns2_ss), 
         .weight(neurons_weight[63:32]),
         .a(output_layer[63:32])
 
     );
 
-        softmax_neuron #(.NUM_INPUTS(3)) sn3 (
+        softmax_neuron #(.NUM_INPUTS(4)) sn3 (
 
         .clock(clock),
         .neuron_enable(layer_enable),
@@ -167,7 +167,7 @@ module output_softmax_layer #(
         .weight_memory_address(weight_memory_address),
         .neuron_state(layer_state),
 
-        .exp(ns1_ss), 
+        .exp(ns3_ss), 
         .weight(neurons_weight[95:64]),
         .a(output_layer[95:64])
     );

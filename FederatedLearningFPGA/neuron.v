@@ -3,16 +3,16 @@ module relu (
     output reg [31:0] a
 );
 
-initial begin
-    a = 32'b0;
-end 
-
-always @(*) begin
-    if(Z[31]) begin
+    initial begin
         a = 32'b0;
-    end else begin
-        a = Z;
-    end
+    end 
+
+    always @(*) begin
+        if(Z[31]) begin
+            a = 32'b0;
+        end else begin
+            a = Z;
+        end
 end
 
 endmodule
@@ -30,47 +30,52 @@ module Z #(parameter NUM_INPUTS = 4) (
 
     // Registradores e fios internos
     reg [31:0] Z;
-    reg [31:0] index; // Correção da vírgula
-    wire [31:0] A1_Z, M1_A1, A2_OUT; // Declaração de A2_OUT
+    reg [31:0] index;
+    wire [31:0] M1_A1, A1_Z, A2_OUT;
 
     // Instância do multiplicador IEEE754
     ieee754_multiplier M1 (
-        .A(weight),          // Corrigido de W para weight
+        .A(weight),
         .B(neuron_input),
         .result(M1_A1)
     );
 
-    // Instância dos somadores IEEE754
+    // Instância do somador IEEE754 para acumulação
     ieee754_adder #(32) A1 (
         .A(Z),
         .B(M1_A1),
         .result(A1_Z)
     );
 
+    // Instância do somador IEEE754 para bias
     ieee754_adder #(32) A2 (
         .A(Z),
         .B(bias),
         .result(A2_OUT)
     );
 
-
     initial begin 
-        Z=0;
+        Z = 0;
         index = 0;
     end
 
     // Bloco síncrono
     always @(posedge clock) begin
-        if (enable) begin
+        if (reset) begin
+            Z = 0;
+            index = 0;
+            result = 0;
+        end else if (enable) begin
             if (index < NUM_INPUTS) begin
+                // Use the IEEE754 adder to accumulate properly
                 Z = A1_Z;   
-                $display("Index: %d | M1_A1 = %h | A1_Z = %h | Z = %h | A2_OUT = %h",index,M1_A1,A1_Z,Z,A2_OUT);
+                $display("Index: %d | M1_A1 = %h | A1_Z = %h | Z = %h | A2_OUT = %h", index, M1_A1, A1_Z, Z, A2_OUT);
                 index = index + 1; 
 
-            end else begin
-                
+            end else if (index == NUM_INPUTS) begin
+                // Add bias to the final accumulated Z value
                 result = A2_OUT;
-                $display("Index: %d | result = %h",index,result);
+                $display("Index: %d | Final Z = %h | Bias = %h | result = %h", index, Z, bias, result);
 
                 Z = 0;             
                 index = 0;
@@ -148,6 +153,7 @@ module hidden_neuron #(parameter NUM_INPUTS = 4) (
         .NUM_INPUTS(NUM_INPUTS)
     ) Z (
         .clock(clock),
+        .reset(1'b0), // Reset signal - set to 0 for normal operation
         .enable(enable_Z), 
         .neuron_input(MUX_OUT),
         .weight(MEM_OUT),
@@ -296,7 +302,7 @@ endmodule
 module softmax_sum #(parameter NUM_INPUTS = 4) (
     
     input [(32*NUM_INPUTS)-1:0] input_data,
-    output reg [(32*NUM_INPUTS)-1:0] output_data
+    output reg [31:0] output_data
 
 );
 
@@ -377,6 +383,7 @@ module softmax_neuron #(parameter NUM_INPUTS = 4) (
         .NUM_INPUTS(NUM_INPUTS)
     ) Z (
         .clock(clock),
+        .reset(1'b0), // Reset signal - set to 0 for normal operation
         .enable(enable_Z), 
         .neuron_input(MUX_OUT),
         .weight(MEM_OUT),
