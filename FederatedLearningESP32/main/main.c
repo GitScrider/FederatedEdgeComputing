@@ -12,6 +12,18 @@
 #include "JSONConverter.h"
 #include "esp_spiffs.h"
 
+
+#include "driver/i2c.h"
+#include "esp_system.h"
+
+
+// Defina o endereço I2C do INA219 (geralmente é 0x40)
+#define INA219_ADDR 0x40
+
+// Pinos I2C
+#define SDA_PIN 21
+#define SCL_PIN 22
+
 void brink_error_led(int blink){
 
     for(int i=0;i<blink;i++){
@@ -37,8 +49,6 @@ int global_model_status(){
     vTaskDelay(50 / portTICK_PERIOD_MS);
     return status;
 }
-
-
 
 FederatedLearning *global_model(){
     gpio_set_level(LED_PIN_SYNC, 1);
@@ -66,22 +76,30 @@ void deep_learning(){
 
     while (1){
         if(global_model_status()){
-            // FederatedLearning *globalmodelinstance = getglobalmodel();
-            // replaceNeuralNetwork(globalmodelinstance);
             replaceNeuralNetwork(global_model());
             NeuralNetworkTraining();
-            //FederatedLearning *FDI = getFederatedLearningInstance();
-            //PrintNeuralNetwork(FDI->neuralnetwork);
-            //PrintNeuralNetwork(FDI->neuralnetwork);
             websocket_send_local_model();
+        }else{
+            break;
         }
         ctrl++;
     }
 }
 
-void start_federated_learning_system(){
 
-    int startled = 0;
+void deep_learning_test(){
+    if(global_model_status()){
+        FederatedLearning *globalmodelinstance = getglobalmodel();
+        replaceNeuralNetwork(globalmodelinstance);
+        PrintNeuralNetwork(globalmodelinstance->neuralnetwork);
+        NeuralNetworkTraining();
+        //FederatedLearning *FDI = getFederatedLearningInstance();
+        //PrintNeuralNetwork(FDI->neuralnetwork);
+    }
+}
+
+
+void start_esp32_configuration(){
 
     UARTConfiguration();
     GPIOConfiguration();
@@ -91,6 +109,11 @@ void start_federated_learning_system(){
     gpio_set_level(LED_PIN_ERROR, 0);
     gpio_set_level(LED_PIN_SYNC, 0);
     vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+}
+
+void start_federated_learning_system_button(){
+    int startled = 0;
     while (gpio_get_level(BUTTON_PIN)){
         startled = ~startled;
         gpio_set_level(LED_PIN_WORKING, startled);
@@ -100,7 +123,8 @@ void start_federated_learning_system(){
 }
 
 void app_main(void){
-    start_federated_learning_system();
+    start_esp32_configuration();
+    start_federated_learning_system_button();
     node_register();
     deep_learning();
 }

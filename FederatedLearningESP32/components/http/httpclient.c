@@ -1,5 +1,6 @@
 #include "httpclient.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 
 int is_utf8(const char *str) {
     while (*str) {
@@ -45,6 +46,8 @@ int is_complete_json(const char *json, size_t len) {
 }
 
 
+//////////////////////////////////////////////////GET//////////////////////////////////////////////////
+
 static const char *TAG = "HTTP_CLIENT";
 
 static char *response_buffer = NULL;
@@ -57,8 +60,9 @@ esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
             if (evt->data_len > 0) {
                 // Reallocate the buffer to hold the new data
                 char *new_buf = realloc(response_buffer, response_buffer_length + evt->data_len + 1);
+
                 if (new_buf == NULL) {
-                    //ESP_LOGE(TAG, "Failed to allocate memory for response buffer");
+                    ESP_LOGE(TAG, "Failed to allocate memory for response buffer");
                     return ESP_FAIL;
                 }
                 response_buffer = new_buf;
@@ -66,19 +70,20 @@ esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
                 memcpy(response_buffer + response_buffer_length, evt->data, evt->data_len);
                 response_buffer_length += evt->data_len;
                 response_buffer[response_buffer_length] = '\0'; // Null-terminate the buffer
+
             }
             break;
 
         case HTTP_EVENT_ERROR:
-            //ESP_LOGE(TAG, "HTTP_EVENT_ERROR");
+            ESP_LOGE(TAG, "HTTP_EVENT_ERROR");
             break;
 
         case HTTP_EVENT_ON_FINISH:
-            //ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
             break;
 
         case HTTP_EVENT_DISCONNECTED:
-            //ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
             break;
 
         default:
@@ -86,6 +91,7 @@ esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
     }
     return ESP_OK;
 }
+
 
 void perform_get_request(const char *url)
 {
@@ -102,22 +108,43 @@ void perform_get_request(const char *url)
     };
 
     esp_http_client_handle_t client = esp_http_client_init(&config_get);
-    esp_err_t err = esp_http_client_perform(client);
+    esp_err_t err;
+    int retries = 0;
 
-    // if (err == ESP_OK) {
-    //    // ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
-    //     //         esp_http_client_get_status_code(client),
-    //      //        esp_http_client_get_content_length(client));
-    // } else {
-    //    // ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
-    // }
+    while (retries < MAX_RETRIES) {
+    
+        int64_t start_time = esp_timer_get_time();
+
+        err = esp_http_client_perform(client); // A requisição ocorre aqui
+
+        if (err == ESP_OK) {
+            
+            int64_t end_time = esp_timer_get_time();
+            int64_t elapsed_time = (end_time - start_time) / 1000; 
+
+            ESP_LOGI(TAG, "Request Successful, Latency: %lld ms", elapsed_time);
+            break; 
+
+        } else {
+            ESP_LOGE(TAG, "Error sending request: %s", esp_err_to_name(err));
+        }
+
+        int64_t current_time = esp_timer_get_time();
+        if ((current_time - start_time) / 1000 > TIMEOUT_MS) {
+            ESP_LOGW(TAG, "Timeout reached, rebroadcasting... (tries: %d)", retries + 1);
+            retries++;
+        }
+    }
+
+    if (retries == MAX_RETRIES) {
+        ESP_LOGE(TAG, "Failed after %d tries", MAX_RETRIES);
+    }
 
     esp_http_client_cleanup(client);
 }
 
 int getglobalmodelstatus() {
     perform_get_request(GET_GLOBAL_MODEL_STATUS);
-
     int status = 0; // Default status value
     if (response_buffer != NULL) {
         cJSON *req = cJSON_Parse(response_buffer);
@@ -142,7 +169,6 @@ int getglobalmodelstatus() {
 
 void getregisternode() {
     perform_get_request(GET_REGISTER_NODE);
-
     if (response_buffer != NULL) {
         cJSON *req = cJSON_Parse(response_buffer);
         if (req != NULL) {
@@ -182,155 +208,80 @@ FederatedLearning *getglobalmodel() {
     return FederatedLearningInstance;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//cJSON *req;
 
-////////// get and post perform //////////
+//Not working
+//////////////////////////////////////////////////POST//////////////////////////////////////////////////
 
-// esp_err_t client_event_get_handler(esp_http_client_event_handle_t evt)
-// {
-//     switch (evt->event_id){
-
-//     case HTTP_EVENT_ON_DATA:
-
-//         //printf("DATA: %.*s\n",evt->data_len, (char *)evt->data);
-
-//         printf("JSON: %d\n",is_complete_json((char *)evt->data,evt->data_len));
-
-//         if(is_complete_json((char *)evt->data,evt->data_len)){
-//             req = cJSON_Parse((char *)evt->data);
-//         }
-//         else{
-//             req = NULL;
-//         }
-
-//         break;
-
-//     default:
-//         break;
-//     }
-//     return ESP_OK;
-// }
-
-esp_err_t client_event_post_handler(esp_http_client_event_handle_t evt)
-{
-    switch (evt->event_id)
-    {
-    case HTTP_EVENT_ON_DATA:
-        printf("HTTP_EVENT_ON_DATA: %.*s\n", evt->data_len, (char *)evt->data);
-        break;
-
-    default:
-        break;
+// Função de callback para tratar eventos HTTP
+esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
+    switch (evt->event_id) {
+        case HTTP_EVENT_ERROR:
+            ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
+            break;
+        case HTTP_EVENT_ON_CONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
+            break;
+        case HTTP_EVENT_HEADER_SENT:
+            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
+            break;
+        case HTTP_EVENT_ON_HEADER:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+            break;
+        case HTTP_EVENT_ON_DATA:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
+                if (!esp_http_client_is_chunked_response(evt->client)) {
+                    printf("%.*s", evt->data_len, (char*)evt->data);
+                }
+            break;
+        case HTTP_EVENT_ON_FINISH:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
+            break;
+        case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+            break;
+        default:
+            ESP_LOGI(TAG, "Unhandled event ID: %d", evt->event_id);
+            break;
     }
     return ESP_OK;
 }
 
-// void perform_get_request(const char *url)
-// {
-//     esp_http_client_config_t config_get = {
-//     .url = url,
-//     .method = HTTP_METHOD_GET,
-//     .cert_pem = NULL,
-//     .event_handler = client_event_get_handler,
-//     .buffer_size = 4096,
-//     .skip_cert_common_name_check = true, 
-//     };
 
-//     esp_http_client_handle_t client = esp_http_client_init(&config_get);
-//     esp_http_client_perform(client);
-//     esp_http_client_cleanup(client);
+void http_post_task(void *pvParameters) {
+    esp_err_t err;
 
-// }
+    esp_http_client_config_t config = {
+        .url = "http://192.168.15.50:8888/api/testpost",
+        .event_handler = _http_event_handler,
+    };
 
-void perform_post_request(const char *url, cJSON *json_data) {
-    //char *post_data = cJSON_Print(json_data);
-    esp_http_client_config_t config_post = {
-        .url = url,
-        .method = HTTP_METHOD_POST,
-        .cert_pem = NULL,
-        .event_handler = client_event_post_handler};
-        
-    esp_http_client_handle_t client = esp_http_client_init(&config_post);
+    esp_http_client_handle_t client = esp_http_client_init(&config);
 
-    const char *post_data = "{\"data\":2}";
-    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+
+    // Cabeçalhos adicionais
     esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_header(client, "Accept", "*/*");
+    esp_http_client_set_header(client, "User-Agent", "ESP32");
 
-    esp_err_t err = esp_http_client_perform(client);
+    // Corpo da requisição
+    const char *post_data = "{\"key\":\"TESTEPOST\",\"value\":1}";
+
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+
+    // Enviando a requisição POST
+    err = esp_http_client_perform(client);
+
     if (err == ESP_OK) {
-        ESP_LOGI(TAG, "POST request sent successfully");
+        // ESP_LOGI(TAG, "HTTPS Status = %d, content_length = %d",
+        //          esp_http_client_get_status_code(client),
+        //          esp_http_client_get_content_length(client));
     } else {
-        ESP_LOGE(TAG, "Failed to send POST request, error code: %d", err);
+        //ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
-    // Setting HTTP client free
+    // Limpeza
     esp_http_client_cleanup(client);
-
-    //free(post_data); // Libera a memória alocada para a string JSON
-}
-
-/////////// /////////// ///////////
- 
-// FederatedLearning * getglobalmodel(){
-//     perform_get_request(GET_GLOBAL_MODEL);
-//     //char *json_string = cJSON_Print(req);
-//     //printf("%s\n",json_string);
-//     //free(json_string);
-//     if(req!=NULL){
-//         FederatedLearning *FederatedLearningInstance = JSONToFederatedLearning(req);
-//         cJSON_Delete(req);
-//         return FederatedLearningInstance;
-//     }
-//     return NULL;
-// }
-
-// int getglobalmodelstatus(){
-
-//     perform_get_request(GET_GLOBAL_MODEL_STATUS);
-
-//     cJSON *status_item = cJSON_GetObjectItem(req, "status");
-//     if (status_item == NULL) {
-//         printf("Error getting 'status' item.\n");
-//         cJSON_Delete(req);
-//         return 0;
-//     }
-
-//     if (!cJSON_IsNumber(status_item)) {
-//         printf("Value of 'status' is not a number.\n");
-//         cJSON_Delete(req);
-//         return 0;
-//     }
-
-//     int status = status_item->valueint;
-    
-//     cJSON_Delete(req);
-
-//     return status;
-
-// }
-
-// void getregisternode(){
-//     perform_get_request(GET_REGISTER_NODE);
-//     char *json_string = cJSON_Print(req);
-//     printf("%s\n",json_string);
-//     free(json_string);
-//     cJSON_Delete(req);
-// }
-
-void postglobalmodel(){
-    
-    // teste();
-    // FederatedLearning *FDI =  getFederatedLearningInstance();
-    // PrintNeuralNetwork(FDI->neuralnetwork);
-    // cJSON *json_data = federatedLearningToJSON(FDI);
-    // char *json_string = cJSON_Print(json_data);
-    // printf("%s\n", json_string);
-    // teste();
-    perform_post_request(POST_GLOBAL_MODEL,NULL);
-    // cJSON_Delete(json_data);
-    // free(json_string);
-    // teste();
-
+    vTaskDelete(NULL);
 }
 

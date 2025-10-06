@@ -1,0 +1,39 @@
+
+
+iverilog -o icarus_testbench .\testbench\tb_alu\tb_ieee754_multiplier.v .\alu.v
+vvp .\icarus_testbench
+
+
+*Behavior Level
+
+*RTL (Register Transfer Level) 
+ 
+*Formal Verification ABV - SVA / PSL
+
+*TestBench
+
+*Circuit Level
+
+
+
+MODULES
+
+    ->ALU
+        add mul div natexp
+
+    ->NEURON
+        z memory mux
+        ->InputNeuron
+
+        ->HiddenNeuron
+            relu
+        ->OutputNeuron
+            softmax
+            
+    ->LAYER
+            
+    ->NEURAL-NETWORK
+
+
+
+

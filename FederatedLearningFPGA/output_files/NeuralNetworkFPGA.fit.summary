@@ -1,15 +1,15 @@
-Fitter Status : Successful - Thu Sep 19 02:03:39 2024
+Fitter Status : Successful - Fri Dec 13 02:13:22 2024
 Quartus Prime Version : 23.1std.1 Build 993 05/14/2024 SC Lite Edition
 Revision Name : NeuralNetworkFPGA
 Top-level Entity Name : NeuralNetworkFPGA
 Family : Cyclone IV E
 Device : EP4CE115F29C7
 Timing Models : Final
-Total logic elements : 70 / 114,480 ( < 1 % )
-    Total combinational functions : 70 / 114,480 ( < 1 % )
-    Dedicated logic registers : 16 / 114,480 ( < 1 % )
-Total registers : 16
-Total pins : 34 / 529 ( 6 % )
+Total logic elements : 0 / 114,480 ( 0 % )
+    Total combinational functions : 0 / 114,480 ( 0 % )
+    Dedicated logic registers : 0 / 114,480 ( 0 % )
+Total registers : 0
+Total pins : 76 / 529 ( 14 % )
 Total virtual pins : 0
 Total memory bits : 0 / 3,981,312 ( 0 % )
 Embedded Multiplier 9-bit elements : 0 / 532 ( 0 % )

@@ -1,0 +1,23 @@
+
+
+
+module arithmetic_logic_unit ();
+
+module
+
+module cache_data ();
+
+endmodule
+
+module instruction chache ();
+
+endmodule
+
+
+module clock_control ();
+
+endmodule
+
+module processor ();
+
+endmodule

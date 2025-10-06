@@ -1,0 +1,90 @@
+
+State Machine - |NeuralNetworkFPGA|output_softmax_layer:sl|softmax_neuron:sn3|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|output_softmax_layer:sl|softmax_neuron:sn3|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|output_softmax_layer:sl|softmax_neuron:sn2|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|output_softmax_layer:sl|softmax_neuron:sn2|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|output_softmax_layer:sl|softmax_neuron:sn1|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|output_softmax_layer:sl|softmax_neuron:sn1|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl2|hidden_neuron:n2|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl2|hidden_neuron:n2|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl2|hidden_neuron:n1|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl2|hidden_neuron:n1|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl2|hidden_neuron:n0|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl2|hidden_neuron:n0|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl1|hidden_neuron:n2|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl1|hidden_neuron:n2|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl1|hidden_neuron:n1|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl1|hidden_neuron:n1|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl1|hidden_neuron:n0|neuron_backpropagation_state
+Name neuron_backpropagation_state.01 
+neuron_backpropagation_state.00 0 
+neuron_backpropagation_state.01 1 
+
+State Machine - |NeuralNetworkFPGA|hidden_layer:hl1|hidden_neuron:n0|neuron_deltafunction_state
+Name neuron_deltafunction_state.01 
+neuron_deltafunction_state.00 0 
+neuron_deltafunction_state.01 1 
