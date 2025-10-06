@@ -740,17 +740,10 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork) {
   char line[1024];
   Neuron * currentneuron = NULL;
   
-  //FILE *arquivo = fopen("dados.txt", "w");
-
-  // Verificando se o arquivo foi aberto com sucesso
-  // if (arquivo == NULL) {
-  //     printf("Erro ao abrir o arquivo.");
-  //     return;
-  // }
 
   for (int TrainingCycle = 0; TrainingCycle < neuralnetwork->epoch; TrainingCycle++) {
 
-    file = fopen("dataset/datasettraining.csv", "r");
+    file = fopen("dataset/wine/datasettrainingnormalized.csv", "r");
 
     if (file == NULL) {
         perror("Erro ao abrir o arquivo");
@@ -763,7 +756,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork) {
 
         char * token = strtok(line, ","); 
 
-        for (int i = 0; i < 7; i++){
+        for (int i = 0; i < neuralnetwork->firstlayer->neurons+neuralnetwork->lastlayer->neurons; i++){
             token = strtok(NULL, ",");
             if (token != NULL) {
               trainingsample[i] = strtof(token, NULL);
@@ -777,7 +770,7 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork) {
 
       //set the input data on inputdata vector
 
-      //printVector(trainingsample,7);
+      //printVector(trainingsample,neuralnetwork->firstlayer->neurons+neuralnetwork->lastlayer->neurons);
 
       currentneuron =  neuralnetwork->firstlayer->firstneuron;
       for (int i = 0; i < neuralnetwork->firstlayer->neurons; i++) {
@@ -816,119 +809,181 @@ void NeuralNetworkTraining(NeuralNetwork * neuralnetwork) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PerformanceMetrics(NeuralNetwork * neuralnetwork,int PercentualEvaluation,float Threshold){
-  
-  float trainingsample[neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons];
-  float label[neuralnetwork->lastlayer->neurons];
-  float Precision=0, Recall=0, Accuracy=0,Specificity=0,F1Score=0;
 
-  int total=0,truepositive=0,falsepositive=0,truenegative=0,falsenegative=0;
+void PerformanceMetrics(NeuralNetwork *neuralnetwork, int PercentualEvaluation, float Threshold) {
+    float trainingsample[neuralnetwork->firstlayer->neurons];
+    float label[neuralnetwork->lastlayer->neurons];
 
-  // variables to cycle through pointers
-  Layer * currentlayer = neuralnetwork -> firstlayer;
-  Neuron * currentneuron = currentlayer -> firstneuron;
+    int total = 0, truepositive = 0, falsepositive = 0, truenegative = 0, falsenegative = 0;
 
-  FILE * file = NULL;
-  char line[1024];
-
-  //Abre o arquivo CSV para leitura
-    file = fopen("dataset/datasetevaluation.csv", "r");
-
-    if (file == NULL) {
-        perror("Erro ao abrir o arquivo");
+    FILE *file = fopen("dataset/wine/datasetevaluationnormalized.csv", "r");
+    if (!file) {
+        perror("Erro ao abrir arquivo");
         return;
     }
 
-  for(int count =0;count<PercentualEvaluation;count++){
-      fgets(line, sizeof(line), file);
+    char line[1024];
 
-        // Divide a linha em campos usando a função strtok
-        char * token = strtok(line, ","); 
+    for (int count = 0; count < PercentualEvaluation; count++) {
+        if (!fgets(line, sizeof(line), file)) break;
 
-        for (int i = 0; i < 7; i++){
-          token = strtok(NULL, ",");
-          if (token != NULL) {
-            trainingsample[i] = strtof(token, NULL);
-          } else {
-            // Lidando com o caso em que não há dados suficientes na linha
-            printf("Erro: Não há dados suficientes para preencher InputData na linha.\n");
-            break;
-          }
+        char *token = strtok(line, ",");
 
-        }
+        // Ignora a primeira coluna (index)
+        int index = atoi(token);
 
-        printf("InputData: [%.1f, %.1f, %.1f, %.1f, %.1f, %.1f, %.1f]\n", trainingsample[0], trainingsample[1], trainingsample[2], trainingsample[3], trainingsample[4], trainingsample[5], trainingsample[6]);
-        
-        currentneuron =  neuralnetwork->firstlayer->firstneuron;
+        // Lê features
         for (int i = 0; i < neuralnetwork->firstlayer->neurons; i++) {
-          currentneuron -> activationfunctionvalue = trainingsample[i];
-          currentneuron = currentneuron -> nextneuron;
+            token = strtok(NULL, ",");
+            if (token != NULL)
+                trainingsample[i] = strtof(token, NULL);
+            else {
+                printf("Erro: linha %d incompleta (features)\n", index);
+                break;
+            }
         }
 
-        //set the label on label vector
-        for (int i = neuralnetwork->firstlayer->neurons; i < neuralnetwork->firstlayer->neurons + neuralnetwork->lastlayer->neurons; i++) {
-          label[i - neuralnetwork->firstlayer->neurons] = trainingsample[i];
-          
+        // Lê labels (one-hot)
+        for (int i = 0; i < neuralnetwork->lastlayer->neurons; i++) {
+            token = strtok(NULL, ",");
+            if (token != NULL)
+                label[i] = strtof(token, NULL);
+            else {
+                printf("Erro: linha %d incompleta (labels)\n", index);
+                break;
+            }
         }
 
-      FeedFoward(neuralnetwork);
-
-      currentneuron = neuralnetwork->lastlayer->firstneuron;
-
-      for(int i=0;i< neuralnetwork->lastlayer->neurons;i++){
-         printf("%f ",currentneuron->activationfunctionvalue);
-         printf("%f ",label[i]);
-         printf("%f ",Threshold);
-        if(label[i]==1){
-           //printf(" positivo\n");
-          if(currentneuron->activationfunctionvalue > Threshold){
-            printf(" truepositive \n");
-            truepositive++;
-          }else{
-            printf(" falsepositive \n");
-
-            falsepositive++;
-          }
-          total++;
-          
-        }else{
-          //printf("negativo\n");
-
-          if(currentneuron->activationfunctionvalue < Threshold){
-            printf(" truenegative \n");
-            
-            truenegative++;
-          }else{
-            printf(" falsenegative \n");
-
-            falsenegative++;
-          }
-          total++;
-
+        // Preenche InputData na primeira camada
+        Neuron *currentneuron = neuralnetwork->firstlayer->firstneuron;
+        for (int i = 0; i < neuralnetwork->firstlayer->neurons; i++) {
+            currentneuron->activationfunctionvalue = trainingsample[i];
+            currentneuron = currentneuron->nextneuron;
         }
-        currentneuron = currentneuron->nextneuron;
 
-      }
-      printf("\n");
-      
+        // Feedforward
+        FeedFoward(neuralnetwork);
 
-  }
+        // Imprime InputData
+        // printf("InputData: [");
+        // for (int i = 0; i < neuralnetwork->firstlayer->neurons; i++) {
+        //     printf("%.2f", trainingsample[i]);
+        //     if (i < neuralnetwork->firstlayer->neurons - 1) printf(", ");
+        // }
+        // printf("]\n");
 
-  fclose(file);
+        // Imprime output da rede, label e threshold
+        currentneuron = neuralnetwork->lastlayer->firstneuron;
+        //printf("Output vs Label (Threshold = %.2f):\n", Threshold);
+        for (int i = 0; i < neuralnetwork->lastlayer->neurons; i++) {
+            float output = currentneuron->activationfunctionvalue;
+            //printf("Neuron %d: Output = %.6f, Label = %.1f -> ", i, output, label[i]);
 
-      printf("total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",total,truepositive,truenegative,falsepositive,falsenegative);
+            if (label[i] == 1) {
+                if (output > Threshold) {
+                    //printf("True Positive\n");
+                    truepositive++;
+                } else {
+                    //printf("False Negative\n");
+                    falsenegative++;
+                }
+            } else {
+                if (output < Threshold) {
+                    //printf("True Negative\n");
+                    truenegative++;
+                } else {
+                    //printf("False Positive\n");
+                    falsepositive++;
+                }
+            }
 
-      Accuracy = (float)(truenegative+truepositive)/(truenegative+truepositive+falsenegative+falsepositive);
-      Precision = (float)truepositive/(truepositive+falsepositive);
-      Recall =(float)truepositive/(truepositive+falsenegative);
-      Specificity = (float)truenegative/(truenegative+falsepositive);
-      F1Score = 2*(float)(Precision * Recall)/(Precision + Recall);
-      printf("Accuracy: %.2f\n",Accuracy);
-      printf("Precision: %.2f\n",Precision);
-      printf("Recall: %.2f\n",Recall);
-      printf("Specificity: %.2f\n",Specificity);
-      printf("F1-Score: %.2f\n",F1Score);
+            total++;
+            currentneuron = currentneuron->nextneuron;
+        }
+
+        //printf("\n");
+    }
+
+    fclose(file);
+
+    // Calcula métricas
+    float Accuracy = (float)(truepositive + truenegative) / total;
+    float Precision = (float)truepositive / (truepositive + falsepositive);
+    float Recall = (float)truepositive / (truepositive + falsenegative);
+    float Specificity = (float)truenegative / (truenegative + falsepositive);
+    float F1Score = 2 * (Precision * Recall) / (Precision + Recall);
+
+    printf("Total = %d, TP = %d, TN = %d, FP = %d, FN = %d\n",
+           total, truepositive, truenegative, falsepositive, falsenegative);
+    printf("Accuracy: %.2f\n", Accuracy);
+    printf("Precision: %.2f\n", Precision);
+    printf("Recall: %.2f\n", Recall);
+    printf("Specificity: %.2f\n", Specificity);
+    printf("F1-Score: %.2f\n", F1Score);
 }
+
+// int main() {
+
+//   NeuralNetwork neuralnetwork;
+  
+//   //LayerConfig *layerconfig0, *layerconfig1, *layerconfig2, *layerconfig3;
+
+//   LayerConfig *layerconfig0 = malloc(sizeof(LayerConfig));
+//   LayerConfig *layerconfig1 = malloc(sizeof(LayerConfig));
+//   LayerConfig *layerconfig2 = malloc(sizeof(LayerConfig));
+//   LayerConfig *layerconfig3 = malloc(sizeof(LayerConfig));
+//   //LayerConfig *layerconfig4 = malloc(sizeof(LayerConfig));
+
+//   layerconfig0->first =layerconfig0;
+//   layerconfig0->neurons= 9;
+//   layerconfig0->activationfunctiontype = 0;
+//   layerconfig0->next = layerconfig1;
+
+//   layerconfig1->neurons= 9;
+//   layerconfig1->activationfunctiontype = RELU;
+//   layerconfig1->next = layerconfig2;
+
+//   layerconfig2->neurons= 3;
+//   layerconfig2->activationfunctiontype = RELU;
+//   layerconfig2->next = layerconfig3;
+
+//   // layerconfig3->neurons= 3;
+//   // layerconfig3->activationfunctiontype = RELU;
+//   // layerconfig3->next = layerconfig4;
+
+//   // layerconfig4->neurons= 7;
+//   // layerconfig4->activationfunctiontype = SOFTMAX;
+//   // layerconfig4->next = NULL;
+
+//   layerconfig3->neurons= 7;
+//   layerconfig3->activationfunctiontype = SOFTMAX;
+//   layerconfig3->next = layerconfig3;
+
+  
+//   InitializeNeuralNetWork(&neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
+
+//   //printf("%f\n",LassoRegressionCalculation(&neuralnetwork,0.01));
+//   //printf("%f\n",RidgeRegressionCalculation(&neuralnetwork,0.01));
+
+
+//   PrintNeuralNeuralNetWork(&neuralnetwork);
+
+//   neuralnetwork.percentualtraining = 172;
+//   neuralnetwork.epoch = 400;
+//   neuralnetwork.alpha=0.001;
+//   neuralnetwork.regularization=L2;
+//   neuralnetwork.lambda =0.0001;
+
+//   NeuralNetworkTraining(&neuralnetwork);
+
+//   //PrintNeuralNeuralNetWork( & neuralnetwork);
+
+//   PerformanceMetrics(&neuralnetwork,42,0.5);
+
+//   //freeNeuralNetwork( neuralnetwork);
+
+// }
+
 
 int main() {
 
@@ -940,13 +995,14 @@ int main() {
   LayerConfig *layerconfig1 = malloc(sizeof(LayerConfig));
   LayerConfig *layerconfig2 = malloc(sizeof(LayerConfig));
   LayerConfig *layerconfig3 = malloc(sizeof(LayerConfig));
+  //LayerConfig *layerconfig4 = malloc(sizeof(LayerConfig));
 
   layerconfig0->first =layerconfig0;
-  layerconfig0->neurons= 4;
+  layerconfig0->neurons= 13;
   layerconfig0->activationfunctiontype = 0;
   layerconfig0->next = layerconfig1;
 
-  layerconfig1->neurons= 3;
+  layerconfig1->neurons= 9;
   layerconfig1->activationfunctiontype = RELU;
   layerconfig1->next = layerconfig2;
 
@@ -954,9 +1010,17 @@ int main() {
   layerconfig2->activationfunctiontype = RELU;
   layerconfig2->next = layerconfig3;
 
+  // layerconfig3->neurons= 3;
+  // layerconfig3->activationfunctiontype = RELU;
+  // layerconfig3->next = layerconfig4;
+
+  // layerconfig4->neurons= 7;
+  // layerconfig4->activationfunctiontype = SOFTMAX;
+  // layerconfig4->next = NULL;
+
   layerconfig3->neurons= 3;
   layerconfig3->activationfunctiontype = SOFTMAX;
-  layerconfig3->next = NULL;
+  layerconfig3->next = layerconfig3;
 
   
   InitializeNeuralNetWork(&neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY);
@@ -967,20 +1031,18 @@ int main() {
 
   PrintNeuralNeuralNetWork(&neuralnetwork);
 
-  neuralnetwork.percentualtraining = 120;
-  neuralnetwork.epoch = 100;
+  neuralnetwork.percentualtraining = 143;
+  neuralnetwork.epoch = 400;
   neuralnetwork.alpha=0.001;
   neuralnetwork.regularization=L2;
-  neuralnetwork.lambda =0.01;
+  neuralnetwork.lambda =0.0001;
 
   NeuralNetworkTraining(&neuralnetwork);
 
   //PrintNeuralNeuralNetWork( & neuralnetwork);
 
-  PerformanceMetrics(&neuralnetwork,30,0.5);
+  PerformanceMetrics(&neuralnetwork,35,0.5);
 
   //freeNeuralNetwork( neuralnetwork);
 
 }
-
-
