@@ -630,22 +630,21 @@ void setFederatedLearningGlobalModel() {
   layerconfig3->next = NULL;
 
   InitializeNeuralNetWork(federatedLearningInstance->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY,WEIGHT_VALUE_RANDOM);
-  
-  federatedLearningInstance->neuralnetwork->percentualtraining = 40;
+  federatedLearningInstance->neuralnetwork->percentualtraining = 120;
   federatedLearningInstance->neuralnetwork->epoch = 8;
   federatedLearningInstance->neuralnetwork->alpha=0.001;
   federatedLearningInstance->neuralnetwork->regularization=L2;
   federatedLearningInstance->neuralnetwork->lambda =0.01;
 
-  federatedLearningInstance->nodecontrol->interactioncycle=12;
-  federatedLearningInstance->nodecontrol->clientnodes=3;
+  federatedLearningInstance->nodecontrol->interactioncycle=11;
+  federatedLearningInstance->nodecontrol->clientnodes=1;
   federatedLearningInstance->nodecontrol->clientnodesregistered=0;
   InitializeNeuralNetWork(federatedLearningInstance->nodecontrol->neuralnetwork, 4 ,layerconfig0, CATEGORICAL_CROSS_ENTROPY,WEIGHT_VALUE_ZERO);
   federatedLearningInstance->nodecontrol->neuralnetwork->alpha=0.001;
   federatedLearningInstance->nodecontrol->neuralnetwork->epoch = 8;
   federatedLearningInstance->nodecontrol->neuralnetwork->regularization=L2;
   federatedLearningInstance->nodecontrol->neuralnetwork->lambda =0.01;
-  federatedLearningInstance->nodecontrol->neuralnetwork->percentualtraining = 40;
+  federatedLearningInstance->nodecontrol->neuralnetwork->percentualtraining = 120;
 
   federatedLearningInstance->globalmodelstatus=0;
 

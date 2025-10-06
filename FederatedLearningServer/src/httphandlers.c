@@ -101,32 +101,45 @@ void handle_get_checkmodelstatus(int client_socket,char *ip_addr){
     cJSON_AddNumberToObject(root, "status", 0);
 
     int registered = 0;
+    //int status=0;
 
+    //checking if the node is registered
     ClientNode *currentclientnode =  FederatedLearningInstance->nodecontrol->firstclientnode;
     while(currentclientnode!=NULL){
         if(strcmp(currentclientnode->ip_id,ip_addr)==0){
-            //printf("Node %s is registered\n",currentclientnode->ip_id);
+            printf("Node %s is registered\n",currentclientnode->ip_id);
             registered = 1;
             break;
         }
         currentclientnode = currentclientnode->nextclientnode;
     }
 
-    //printf("clientnodesregistered %d clientnodes %d registered %d \n",FederatedLearningInstance->nodecontrol->clientnodesregistered,FederatedLearningInstance->nodecontrol->clientnodes,registered);
+    printf("clientnodesregistered %d clientnodes %d registered %d \n",FederatedLearningInstance->nodecontrol->clientnodesregistered,FederatedLearningInstance->nodecontrol->clientnodes,registered);
 
     if(FederatedLearningInstance->nodecontrol->clientnodesregistered==FederatedLearningInstance->nodecontrol->clientnodes && registered){
-    //printf("nodeinteraction %d currentinteraction %d globalmodelstatus %d \n",currentclientnode->interaction,FederatedLearningInstance->nodecontrol->currentinteraction,FederatedLearningInstance->globalmodelstatus);
+    printf("nodeinteraction %d currentinteraction %d globalmodelstatus %d \n",currentclientnode->interaction,FederatedLearningInstance->nodecontrol->currentinteraction,FederatedLearningInstance->globalmodelstatus);
             
         if(currentclientnode->interaction==FederatedLearningInstance->nodecontrol->currentinteraction && FederatedLearningInstance->globalmodelstatus){
-            //printf("Same interaction and global modal 1\n");
+            printf("Same interaction and global model avaliable\n");
             cJSON *status_item = cJSON_GetObjectItem(root, "status");
             if (status_item != NULL) {
                 cJSON_SetNumberValue(status_item, 1);
             } 
+            //status=1;
         }
     }
 
     char * response_str = cJSON_Print(root);
+    // char * response_str;
+
+    // if(status){
+    //     response_str = "{\"status\":1}";
+    // }else{
+    //     response_str = "{\"status\":0\"}";
+    // }
+
+    // printf("%s\n", response_str);
+
 
     const char *header = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n";
     write(client_socket, header, strlen(header));
