@@ -1,3 +1,7 @@
 main
 main.exe
 dataset.exe
+dataset/converter
+dataset/normalizer
+dataset/spliter
+dataset/winetocsv
